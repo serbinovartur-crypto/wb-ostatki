@@ -11,10 +11,16 @@
   header { background:#1b1b1b; color:#fff; padding:24px 16px; text-align:center; }
   header h1 { margin:0 0 4px; font-size:22px; }
   header p { margin:0; color:#c9c9c9; font-size:13px; }
+  .tabs { position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid #e2e0da; display:flex; gap:4px; padding:10px 16px; overflow-x:auto; }
+  .tab-btn { border:1px solid #d8d5cd; background:#f6f5f3; color:#1b1b1b; padding:8px 16px; border-radius:20px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .tab-btn:hover { background:#eceae3; }
+  .tab-btn.active { background:#1b1b1b; color:#fff; border-color:#1b1b1b; }
   main { max-width:1100px; margin:0 auto; padding:20px 16px 60px; }
-  h2 { font-size:18px; margin:32px 0 4px; border-bottom:2px solid #1b1b1b; padding-bottom:6px; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+  .section-label { font-size:15px; font-weight:700; margin:20px 0 10px; color:#444; }
   .section-total { color:#666; font-size:13px; margin-bottom:14px; }
-  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:14px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:14px; margin-bottom: 6px; }
   .card { background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.08); display:flex; flex-direction:column; }
   .photo { width:100%; aspect-ratio:3/4; background:#eee; display:flex; align-items:center; justify-content:center; }
   .photo img { width:100%; height:100%; object-fit:cover; }
@@ -31,13 +37,552 @@
 <body>
 <header>
   <h1>Остатки товара</h1>
-  <p>Актуальные остатки на складе — упакованные + неупакованные</p>
+  <p>Актуальные остатки на складе</p>
 </header>
+<div class="tabs">
+  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="svitshoty" onclick="showTab('svitshoty')">Свитшоты</button><button class="tab-btn" data-tab="brak" onclick="showTab('brak')">Брак (волна)</button>
+</div>
 <main>
-  <h2>Основной ассортимент</h2>
-  <div class="section-total">Всего единиц: 7424</div>
-  <div class="grid">
-    
+  
+    <section class="tab-panel" id="tab-upakovannye">
+      <div class="section-total">Всего единиц: 3208</div>
+      <div class="grid">
+
+        <div class="card">
+          <div class="photo"><img src="image1.png" alt="Голубая полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Голубая полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>20</span>
+              <span><b>M</b>71</span>
+              <span><b>L</b>66</span>
+              <span><b>XL</b>97</span>
+              <span><b>XXL</b>42</span>
+            </div>
+            <div class="total">Итого: 296</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image2.png" alt="Серо-буро-малиновая" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Серо-буро-малиновая</div>
+            <div class="sizes">
+              <span><b>S</b>121</span>
+              <span><b>M</b>65</span>
+              <span><b>L</b>36</span>
+              <span><b>XL</b>45</span>
+              <span><b>XXL</b>25</span>
+            </div>
+            <div class="total">Итого: 292</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image3.png" alt="Коричневая полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Коричневая полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>30</span>
+              <span><b>L</b>30</span>
+              <span><b>XL</b>17</span>
+              <span><b>XXL</b>29</span>
+            </div>
+            <div class="total">Итого: 106</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image4.png" alt="Разноцветные листья, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Разноцветные листья, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>30</span>
+              <span><b>L</b>30</span>
+              <span><b>XL</b>30</span>
+              <span><b>XXL</b>30</span>
+            </div>
+            <div class="total">Итого: 120</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image5.png" alt="Бело-голубая, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Бело-голубая, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>35</span>
+              <span><b>L</b>35</span>
+              <span><b>XL</b>35</span>
+              <span><b>XXL</b>40</span>
+            </div>
+            <div class="total">Итого: 145</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image6.png" alt="Белая вышивка, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Белая вышивка, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>20</span>
+              <span><b>M</b>46</span>
+              <span><b>L</b>6</span>
+              <span><b>XL</b>0</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 72</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image7.png" alt="Зелёная полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Зелёная полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>172</span>
+              <span><b>M</b>276</span>
+              <span><b>L</b>130</span>
+              <span><b>XL</b>34</span>
+              <span><b>XXL</b>25</span>
+            </div>
+            <div class="total">Итого: 637</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image8.png" alt="Разноцветная полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Разноцветная полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>88</span>
+              <span><b>L</b>35</span>
+              <span><b>XL</b>0</span>
+              <span><b>XXL</b>3</span>
+            </div>
+            <div class="total">Итого: 126</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image9.png" alt="Бежевая, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Бежевая, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>40</span>
+              <span><b>L</b>40</span>
+              <span><b>XL</b>40</span>
+              <span><b>XXL</b>13</span>
+            </div>
+            <div class="total">Итого: 133</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image10.png" alt="Серая полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Серая полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>21</span>
+              <span><b>L</b>20</span>
+              <span><b>XL</b>0</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 41</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image11.png" alt="Синяя полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Синяя полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>50</span>
+              <span><b>M</b>100</span>
+              <span><b>L</b>120</span>
+              <span><b>XL</b>128</span>
+              <span><b>XXL</b>110</span>
+            </div>
+            <div class="total">Итого: 508</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image12.png" alt="Тиффани, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Тиффани, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>30</span>
+              <span><b>L</b>30</span>
+              <span><b>XL</b>30</span>
+              <span><b>XXL</b>30</span>
+            </div>
+            <div class="total">Итого: 120</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image13.png" alt="Белая, длинный рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Белая, длинный рукав</div>
+            <div class="sizes">
+              <span><b>S</b>100</span>
+              <span><b>M</b>55</span>
+              <span><b>L</b>88</span>
+              <span><b>XL</b>3</span>
+              <span><b>XXL</b>222</span>
+            </div>
+            <div class="total">Итого: 468</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image14.png" alt="Зелёная, длинный рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Зелёная, длинный рукав</div>
+            <div class="sizes">
+              <span><b>S</b>60</span>
+              <span><b>M</b>0</span>
+              <span><b>L</b>0</span>
+              <span><b>XL</b>30</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 90</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image15.png" alt="Чёрная, длинный рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Чёрная, длинный рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>14</span>
+              <span><b>L</b>2</span>
+              <span><b>XL</b>6</span>
+              <span><b>XXL</b>32</span>
+            </div>
+            <div class="total">Итого: 54</div>
+          </div>
+        </div>
+</div>
+    </section>
+    <section class="tab-panel" id="tab-neupakovannye">
+      <div class="section-total">Всего единиц: 4190</div>
+      <div class="grid">
+
+        <div class="card">
+          <div class="photo"><img src="image1.png" alt="Голубая полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Голубая полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>170</span>
+              <span><b>M</b>100</span>
+              <span><b>L</b>4</span>
+              <span><b>XL</b>1</span>
+              <span><b>XXL</b>2</span>
+            </div>
+            <div class="total">Итого: 277</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image3.png" alt="Коричневая полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Коричневая полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>55</span>
+              <span><b>L</b>25</span>
+              <span><b>XL</b>1</span>
+              <span><b>XXL</b>1</span>
+            </div>
+            <div class="total">Итого: 82</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image5.png" alt="Бело-голубая, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Бело-голубая, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>184</span>
+              <span><b>L</b>188</span>
+              <span><b>XL</b>136</span>
+              <span><b>XXL</b>17</span>
+            </div>
+            <div class="total">Итого: 525</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image6.png" alt="Белая вышивка, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Белая вышивка, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>61</span>
+              <span><b>M</b>28</span>
+              <span><b>L</b>1</span>
+              <span><b>XL</b>1</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 91</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image7.png" alt="Зелёная полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Зелёная полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>175</span>
+              <span><b>M</b>403</span>
+              <span><b>L</b>119</span>
+              <span><b>XL</b>15</span>
+              <span><b>XXL</b>7</span>
+            </div>
+            <div class="total">Итого: 719</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image4.png" alt="Разноцветные листья, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Разноцветные листья, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>0</span>
+              <span><b>L</b>0</span>
+              <span><b>XL</b>65</span>
+              <span><b>XXL</b>73</span>
+            </div>
+            <div class="total">Итого: 138</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image8.png" alt="Разноцветная полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Разноцветная полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>112</span>
+              <span><b>L</b>10</span>
+              <span><b>XL</b>0</span>
+              <span><b>XXL</b>2</span>
+            </div>
+            <div class="total">Итого: 124</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image9.png" alt="Бежевая, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Бежевая, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>246</span>
+              <span><b>L</b>120</span>
+              <span><b>XL</b>81</span>
+              <span><b>XXL</b>1</span>
+            </div>
+            <div class="total">Итого: 448</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image16.png" alt="Жёлтая полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Жёлтая полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>3</span>
+              <span><b>L</b>1</span>
+              <span><b>XL</b>2</span>
+              <span><b>XXL</b>3</span>
+            </div>
+            <div class="total">Итого: 9</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image10.png" alt="Серая полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Серая полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>97</span>
+              <span><b>M</b>82</span>
+              <span><b>L</b>21</span>
+              <span><b>XL</b>79</span>
+              <span><b>XXL</b>10</span>
+            </div>
+            <div class="total">Итого: 289</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image11.png" alt="Синяя полоска, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Синяя полоска, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>300</span>
+              <span><b>M</b>232</span>
+              <span><b>L</b>141</span>
+              <span><b>XL</b>165</span>
+              <span><b>XXL</b>24</span>
+            </div>
+            <div class="total">Итого: 862</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image12.png" alt="Тиффани, кор. рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Тиффани, кор. рукав</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>78</span>
+              <span><b>L</b>40</span>
+              <span><b>XL</b>39</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 157</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image13.png" alt="Белая, длинный рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Белая, длинный рукав</div>
+            <div class="sizes">
+              <span><b>S</b>204</span>
+              <span><b>M</b>33</span>
+              <span><b>L</b>6</span>
+              <span><b>XL</b>7</span>
+              <span><b>XXL</b>70</span>
+            </div>
+            <div class="total">Итого: 320</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image14.png" alt="Зелёная, длинный рукав" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Зелёная, длинный рукав</div>
+            <div class="sizes">
+              <span><b>S</b>61</span>
+              <span><b>M</b>1</span>
+              <span><b>L</b>1</span>
+              <span><b>XL</b>1</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 64</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image17.png" alt="Худи чёрная" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Худи чёрная</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>0</span>
+              <span><b>L</b>0</span>
+              <span><b>XL</b>0</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><div class="noimg">нет фото</div></div>
+          <div class="info">
+            <div class="name">Худи белая</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>0</span>
+              <span><b>L</b>0</span>
+              <span><b>XL</b>0</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image18.png" alt="Худи серая" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Худи серая</div>
+            <div class="sizes">
+              <span><b>S</b>3</span>
+              <span><b>M</b>1</span>
+              <span><b>L</b>2</span>
+              <span><b>XL</b>3</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 9</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image19.png" alt="Худи зелёная" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Худи зелёная</div>
+            <div class="sizes">
+              <span><b>S</b>1</span>
+              <span><b>M</b>0</span>
+              <span><b>L</b>0</span>
+              <span><b>XL</b>0</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 1</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image20.png" alt="Зип-худи зелёная" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Зип-худи зелёная</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>21</span>
+              <span><b>L</b>21</span>
+              <span><b>XL</b>21</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 63</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="photo"><img src="image21.png" alt="Зип-худи коричневая" loading="lazy"></div>
+          <div class="info">
+            <div class="name">Зип-худи коричневая</div>
+            <div class="sizes">
+              <span><b>S</b>0</span>
+              <span><b>M</b>5</span>
+              <span><b>L</b>2</span>
+              <span><b>XL</b>5</span>
+              <span><b>XXL</b>0</span>
+            </div>
+            <div class="total">Итого: 12</div>
+          </div>
+        </div>
+</div>
+    </section>
+    <section class="tab-panel active" id="tab-obshee">
+      <div class="section-total">Всего единиц: 7424</div>
+      <div class="grid">
+
         <div class="card">
           <div class="photo"><img src="image1.png" alt="Голубая полоска, кор. рукав" loading="lazy"></div>
           <div class="info">
@@ -367,12 +912,12 @@
             <div class="total">Итого: 12</div>
           </div>
         </div>
-  </div>
+</div>
+    </section>
+    <section class="tab-panel" id="tab-svitshoty">
+      <div class="section-total">Всего единиц: 178</div>
+      <div class="grid">
 
-  <h2>Свитшоты</h2>
-  <div class="section-total">Всего единиц: 178</div>
-  <div class="grid">
-    
         <div class="card">
           <div class="photo"><div class="noimg">нет фото</div></div>
           <div class="info">
@@ -432,12 +977,12 @@
             <div class="total">Итого: 7</div>
           </div>
         </div>
-  </div>
+</div>
+    </section>
+    <section class="tab-panel" id="tab-brak">
+      <div class="section-total">Всего единиц: 385</div>
+      <div class="grid">
 
-  <h2>Брак (волна)</h2>
-  <div class="section-total">Всего единиц: 385</div>
-  <div class="grid">
-    
         <div class="card">
           <div class="photo"><img src="image7.png" alt="Зелёная, кор. рукав (брак, волна)" loading="lazy"></div>
           <div class="info">
@@ -497,9 +1042,17 @@
             <div class="total">Итого: 54</div>
           </div>
         </div>
-  </div>
-
+</div>
+    </section>
   <div class="updated">Обновлено вручную · данные подготовлены Claude</div>
 </main>
+<script>
+function showTab(slug) {
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-' + slug).classList.add('active');
+  document.querySelector('.tab-btn[data-tab="' + slug + '"]').classList.add('active');
+}
+</script>
 </body>
 </html>
