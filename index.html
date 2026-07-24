@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Остатки товара</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
@@ -18,17 +19,22 @@
   main { max-width:1100px; margin:0 auto; padding:20px 16px 60px; }
   .tab-panel { display:none; }
   .tab-panel.active { display:block; }
-  .section-total { color:#666; font-size:13px; margin-bottom:14px; }
+  .section-total { color:#666; font-size:13px; margin-bottom:4px; }
+  .hint { color:#999; font-size:12px; margin-bottom:14px; }
   .table-wrap { overflow-x:auto; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
-  table.stock-table { border-collapse:collapse; width:100%; min-width:640px; font-size:13px; }
+  table.stock-table { border-collapse:collapse; width:100%; min-width:680px; font-size:13px; }
   table.stock-table th, table.stock-table td { padding:8px 10px; text-align:center; border-bottom:1px solid #eeece6; white-space:nowrap; }
   table.stock-table thead th { position:sticky; top:0; background:#1b1b1b; color:#fff; font-weight:600; font-size:12px; z-index:1; }
   table.stock-table tbody tr:hover { background:#faf9f6; }
+  .cell-drag { width:28px; padding:6px 2px !important; color:#bbb; cursor:grab; font-size:16px; text-align:center; letter-spacing:-2px; }
+  .cell-drag:active { cursor:grabbing; }
   .cell-photo { width:70px; padding:6px !important; }
   .cell-photo img { width:56px; height:56px; object-fit:cover; border-radius:6px; display:block; }
   .noimg { width:56px; height:56px; border-radius:6px; background:#eee; color:#999; font-size:9px; display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2; }
   .cell-name { text-align:left; font-weight:600; white-space:normal; min-width:180px; }
   .cell-total { font-weight:700; }
+  .sortable-ghost { background:#eef2ff !important; }
+  .sortable-drag { background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.15); }
   .updated { text-align:center; color:#999; font-size:12px; margin-top:40px; }
 </style>
 </head>
@@ -43,10 +49,12 @@
 <main>
     <section class="tab-panel" id="tab-upakovannye">
       <div class="section-total">Всего единиц: 3208</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится в этом браузере</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
           <tr>
+            <th class="cell-drag"></th>
             <th class="cell-photo">Фото</th>
             <th class="cell-name">Название</th>
             <th>S</th>
@@ -57,8 +65,9 @@
             <th class="cell-total">Итого</th>
           </tr>
         </thead>
-        <tbody>
-        <tr>
+        <tbody id="tbody-upakovannye" data-slug="upakovannye">
+        <tr data-id="upakovannye-0">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image1.jpg" alt="Голубая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Голубая полоска, кор. рукав</td>
           <td>20</td>
@@ -68,7 +77,8 @@
           <td>42</td>
           <td class="cell-total">296</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-1">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image2.jpg" alt="Серо-буро-малиновая" loading="lazy"></td>
           <td class="cell-name">Серо-буро-малиновая</td>
           <td>121</td>
@@ -78,7 +88,8 @@
           <td>25</td>
           <td class="cell-total">292</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-2">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image3.jpg" alt="Коричневая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Коричневая полоска, кор. рукав</td>
           <td>0</td>
@@ -88,7 +99,8 @@
           <td>29</td>
           <td class="cell-total">106</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-3">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image4.jpg" alt="Разноцветные листья, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Разноцветные листья, кор. рукав</td>
           <td>0</td>
@@ -98,7 +110,8 @@
           <td>30</td>
           <td class="cell-total">120</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-4">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image5.jpg" alt="Бело-голубая, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Бело-голубая, кор. рукав</td>
           <td>0</td>
@@ -108,7 +121,8 @@
           <td>40</td>
           <td class="cell-total">145</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-5">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image6.jpg" alt="Белая вышивка, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Белая вышивка, кор. рукав</td>
           <td>20</td>
@@ -118,7 +132,8 @@
           <td>0</td>
           <td class="cell-total">72</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-6">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image7.jpg" alt="Зелёная полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Зелёная полоска, кор. рукав</td>
           <td>172</td>
@@ -128,7 +143,8 @@
           <td>25</td>
           <td class="cell-total">637</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-7">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image8.jpg" alt="Разноцветная полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Разноцветная полоска, кор. рукав</td>
           <td>0</td>
@@ -138,7 +154,8 @@
           <td>3</td>
           <td class="cell-total">126</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-8">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image9.jpg" alt="Бежевая, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Бежевая, кор. рукав</td>
           <td>0</td>
@@ -148,7 +165,8 @@
           <td>13</td>
           <td class="cell-total">133</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-9">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image10.jpg" alt="Серая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Серая полоска, кор. рукав</td>
           <td>0</td>
@@ -158,7 +176,8 @@
           <td>0</td>
           <td class="cell-total">41</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-10">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image11.jpg" alt="Синяя полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Синяя полоска, кор. рукав</td>
           <td>50</td>
@@ -168,7 +187,8 @@
           <td>110</td>
           <td class="cell-total">508</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-11">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image12.jpg" alt="Тиффани, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Тиффани, кор. рукав</td>
           <td>0</td>
@@ -178,7 +198,8 @@
           <td>30</td>
           <td class="cell-total">120</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-12">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image13.jpg" alt="Белая, длинный рукав" loading="lazy"></td>
           <td class="cell-name">Белая, длинный рукав</td>
           <td>100</td>
@@ -188,7 +209,8 @@
           <td>222</td>
           <td class="cell-total">468</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-13">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image14.jpg" alt="Зелёная, длинный рукав" loading="lazy"></td>
           <td class="cell-name">Зелёная, длинный рукав</td>
           <td>60</td>
@@ -198,7 +220,8 @@
           <td>0</td>
           <td class="cell-total">90</td>
         </tr>
-        <tr>
+        <tr data-id="upakovannye-14">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image15.jpg" alt="Чёрная, длинный рукав" loading="lazy"></td>
           <td class="cell-name">Чёрная, длинный рукав</td>
           <td>0</td>
@@ -213,11 +236,13 @@
       </div>
     </section>
     <section class="tab-panel" id="tab-neupakovannye">
-      <div class="section-total">Всего единиц: 4190</div>
+      <div class="section-total">Всего единиц: 4180</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится в этом браузере</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
           <tr>
+            <th class="cell-drag"></th>
             <th class="cell-photo">Фото</th>
             <th class="cell-name">Название</th>
             <th>S</th>
@@ -228,8 +253,9 @@
             <th class="cell-total">Итого</th>
           </tr>
         </thead>
-        <tbody>
-        <tr>
+        <tbody id="tbody-neupakovannye" data-slug="neupakovannye">
+        <tr data-id="neupakovannye-0">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image1.jpg" alt="Голубая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Голубая полоска, кор. рукав</td>
           <td>170</td>
@@ -239,7 +265,8 @@
           <td>2</td>
           <td class="cell-total">277</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-1">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image3.jpg" alt="Коричневая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Коричневая полоска, кор. рукав</td>
           <td>0</td>
@@ -249,7 +276,8 @@
           <td>1</td>
           <td class="cell-total">82</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-2">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image5.jpg" alt="Бело-голубая, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Бело-голубая, кор. рукав</td>
           <td>0</td>
@@ -259,7 +287,8 @@
           <td>17</td>
           <td class="cell-total">525</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-3">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image6.jpg" alt="Белая вышивка, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Белая вышивка, кор. рукав</td>
           <td>61</td>
@@ -269,7 +298,8 @@
           <td>0</td>
           <td class="cell-total">91</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-4">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image7.jpg" alt="Зелёная полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Зелёная полоска, кор. рукав</td>
           <td>175</td>
@@ -279,7 +309,8 @@
           <td>7</td>
           <td class="cell-total">719</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-5">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image4.jpg" alt="Разноцветные листья, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Разноцветные листья, кор. рукав</td>
           <td>0</td>
@@ -289,7 +320,8 @@
           <td>73</td>
           <td class="cell-total">138</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-6">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image8.jpg" alt="Разноцветная полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Разноцветная полоска, кор. рукав</td>
           <td>0</td>
@@ -299,7 +331,8 @@
           <td>2</td>
           <td class="cell-total">124</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-7">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image9.jpg" alt="Бежевая, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Бежевая, кор. рукав</td>
           <td>0</td>
@@ -309,7 +342,8 @@
           <td>1</td>
           <td class="cell-total">448</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-8">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image16.jpg" alt="Жёлтая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Жёлтая полоска, кор. рукав</td>
           <td>0</td>
@@ -319,7 +353,8 @@
           <td>3</td>
           <td class="cell-total">9</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-9">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image10.jpg" alt="Серая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Серая полоска, кор. рукав</td>
           <td>97</td>
@@ -329,7 +364,8 @@
           <td>10</td>
           <td class="cell-total">289</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-10">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image11.jpg" alt="Синяя полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Синяя полоска, кор. рукав</td>
           <td>300</td>
@@ -339,7 +375,8 @@
           <td>24</td>
           <td class="cell-total">862</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-11">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image12.jpg" alt="Тиффани, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Тиффани, кор. рукав</td>
           <td>0</td>
@@ -349,7 +386,8 @@
           <td>0</td>
           <td class="cell-total">157</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-12">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image13.jpg" alt="Белая, длинный рукав" loading="lazy"></td>
           <td class="cell-name">Белая, длинный рукав</td>
           <td>204</td>
@@ -359,7 +397,8 @@
           <td>70</td>
           <td class="cell-total">320</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-13">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image14.jpg" alt="Зелёная, длинный рукав" loading="lazy"></td>
           <td class="cell-name">Зелёная, длинный рукав</td>
           <td>61</td>
@@ -369,47 +408,8 @@
           <td>0</td>
           <td class="cell-total">64</td>
         </tr>
-        <tr>
-          <td class="cell-photo"><img src="image17.jpg" alt="Худи чёрная" loading="lazy"></td>
-          <td class="cell-name">Худи чёрная</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td class="cell-total">0</td>
-        </tr>
-        <tr>
-          <td class="cell-photo"><div class="noimg">нет фото</div></td>
-          <td class="cell-name">Худи белая</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td class="cell-total">0</td>
-        </tr>
-        <tr>
-          <td class="cell-photo"><img src="image18.jpg" alt="Худи серая" loading="lazy"></td>
-          <td class="cell-name">Худи серая</td>
-          <td>3</td>
-          <td>1</td>
-          <td>2</td>
-          <td>3</td>
-          <td>0</td>
-          <td class="cell-total">9</td>
-        </tr>
-        <tr>
-          <td class="cell-photo"><img src="image19.jpg" alt="Худи зелёная" loading="lazy"></td>
-          <td class="cell-name">Худи зелёная</td>
-          <td>1</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td class="cell-total">1</td>
-        </tr>
-        <tr>
+        <tr data-id="neupakovannye-14">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image20.jpg" alt="Зип-худи зелёная" loading="lazy"></td>
           <td class="cell-name">Зип-худи зелёная</td>
           <td>0</td>
@@ -419,7 +419,8 @@
           <td>0</td>
           <td class="cell-total">63</td>
         </tr>
-        <tr>
+        <tr data-id="neupakovannye-15">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image21.jpg" alt="Зип-худи коричневая" loading="lazy"></td>
           <td class="cell-name">Зип-худи коричневая</td>
           <td>0</td>
@@ -434,11 +435,13 @@
       </div>
     </section>
     <section class="tab-panel active" id="tab-obshee">
-      <div class="section-total">Всего единиц: 7424</div>
+      <div class="section-total">Всего единиц: 7414</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится в этом браузере</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
           <tr>
+            <th class="cell-drag"></th>
             <th class="cell-photo">Фото</th>
             <th class="cell-name">Название</th>
             <th>S</th>
@@ -449,8 +452,9 @@
             <th class="cell-total">Итого</th>
           </tr>
         </thead>
-        <tbody>
-        <tr>
+        <tbody id="tbody-obshee" data-slug="obshee">
+        <tr data-id="obshee-0">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image1.jpg" alt="Голубая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Голубая полоска, кор. рукав</td>
           <td>190</td>
@@ -460,7 +464,8 @@
           <td>44</td>
           <td class="cell-total">599</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-1">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image2.jpg" alt="Серо-буро-малиновая" loading="lazy"></td>
           <td class="cell-name">Серо-буро-малиновая</td>
           <td>121</td>
@@ -470,7 +475,8 @@
           <td>25</td>
           <td class="cell-total">292</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-2">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image3.jpg" alt="Коричневая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Коричневая полоска, кор. рукав</td>
           <td>0</td>
@@ -480,7 +486,8 @@
           <td>30</td>
           <td class="cell-total">188</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-3">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image4.jpg" alt="Разноцветные листья, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Разноцветные листья, кор. рукав</td>
           <td>0</td>
@@ -490,7 +497,8 @@
           <td>103</td>
           <td class="cell-total">258</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-4">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image5.jpg" alt="Бело-голубая, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Бело-голубая, кор. рукав</td>
           <td>0</td>
@@ -500,7 +508,8 @@
           <td>57</td>
           <td class="cell-total">670</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-5">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image6.jpg" alt="Белая вышивка, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Белая вышивка, кор. рукав</td>
           <td>81</td>
@@ -510,7 +519,8 @@
           <td>0</td>
           <td class="cell-total">163</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-6">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image7.jpg" alt="Зелёная полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Зелёная полоска, кор. рукав</td>
           <td>347</td>
@@ -520,7 +530,8 @@
           <td>32</td>
           <td class="cell-total">1356</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-7">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image8.jpg" alt="Разноцветная полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Разноцветная полоска, кор. рукав</td>
           <td>0</td>
@@ -530,7 +541,8 @@
           <td>5</td>
           <td class="cell-total">250</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-8">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image9.jpg" alt="Бежевая, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Бежевая, кор. рукав</td>
           <td>0</td>
@@ -540,7 +552,8 @@
           <td>14</td>
           <td class="cell-total">581</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-9">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image10.jpg" alt="Серая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Серая полоска, кор. рукав</td>
           <td>97</td>
@@ -550,7 +563,8 @@
           <td>10</td>
           <td class="cell-total">330</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-10">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image11.jpg" alt="Синяя полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Синяя полоска, кор. рукав</td>
           <td>350</td>
@@ -560,7 +574,8 @@
           <td>134</td>
           <td class="cell-total">1370</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-11">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image12.jpg" alt="Тиффани, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Тиффани, кор. рукав</td>
           <td>0</td>
@@ -570,7 +585,8 @@
           <td>30</td>
           <td class="cell-total">277</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-12">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image13.jpg" alt="Белая, длинный рукав" loading="lazy"></td>
           <td class="cell-name">Белая, длинный рукав</td>
           <td>304</td>
@@ -580,7 +596,8 @@
           <td>292</td>
           <td class="cell-total">788</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-13">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image14.jpg" alt="Зелёная, длинный рукав" loading="lazy"></td>
           <td class="cell-name">Зелёная, длинный рукав</td>
           <td>121</td>
@@ -590,7 +607,8 @@
           <td>0</td>
           <td class="cell-total">154</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-14">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image15.jpg" alt="Чёрная, длинный рукав" loading="lazy"></td>
           <td class="cell-name">Чёрная, длинный рукав</td>
           <td>0</td>
@@ -600,7 +618,8 @@
           <td>32</td>
           <td class="cell-total">54</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-15">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image16.jpg" alt="Жёлтая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Жёлтая полоска, кор. рукав</td>
           <td>0</td>
@@ -610,47 +629,8 @@
           <td>3</td>
           <td class="cell-total">9</td>
         </tr>
-        <tr>
-          <td class="cell-photo"><img src="image17.jpg" alt="Худи чёрная" loading="lazy"></td>
-          <td class="cell-name">Худи чёрная</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td class="cell-total">0</td>
-        </tr>
-        <tr>
-          <td class="cell-photo"><div class="noimg">нет фото</div></td>
-          <td class="cell-name">Худи белая</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td class="cell-total">0</td>
-        </tr>
-        <tr>
-          <td class="cell-photo"><img src="image18.jpg" alt="Худи серая" loading="lazy"></td>
-          <td class="cell-name">Худи серая</td>
-          <td>3</td>
-          <td>1</td>
-          <td>2</td>
-          <td>3</td>
-          <td>0</td>
-          <td class="cell-total">9</td>
-        </tr>
-        <tr>
-          <td class="cell-photo"><img src="image19.jpg" alt="Худи зелёная" loading="lazy"></td>
-          <td class="cell-name">Худи зелёная</td>
-          <td>1</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td class="cell-total">1</td>
-        </tr>
-        <tr>
+        <tr data-id="obshee-16">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image20.jpg" alt="Зип-худи зелёная" loading="lazy"></td>
           <td class="cell-name">Зип-худи зелёная</td>
           <td>0</td>
@@ -660,7 +640,8 @@
           <td>0</td>
           <td class="cell-total">63</td>
         </tr>
-        <tr>
+        <tr data-id="obshee-17">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image21.jpg" alt="Зип-худи коричневая" loading="lazy"></td>
           <td class="cell-name">Зип-худи коричневая</td>
           <td>0</td>
@@ -676,10 +657,12 @@
     </section>
     <section class="tab-panel" id="tab-svitshoty">
       <div class="section-total">Всего единиц: 178</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится в этом браузере</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
           <tr>
+            <th class="cell-drag"></th>
             <th class="cell-photo">Фото</th>
             <th class="cell-name">Название</th>
             <th>S</th>
@@ -690,8 +673,9 @@
             <th class="cell-total">Итого</th>
           </tr>
         </thead>
-        <tbody>
-        <tr>
+        <tbody id="tbody-svitshoty" data-slug="svitshoty">
+        <tr data-id="svitshoty-0">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><div class="noimg">нет фото</div></td>
           <td class="cell-name">Свитшот белый</td>
           <td>25</td>
@@ -701,7 +685,8 @@
           <td>0</td>
           <td class="cell-total">73</td>
         </tr>
-        <tr>
+        <tr data-id="svitshoty-1">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><div class="noimg">нет фото</div></td>
           <td class="cell-name">Свитшот чёрный</td>
           <td>9</td>
@@ -711,7 +696,8 @@
           <td>0</td>
           <td class="cell-total">93</td>
         </tr>
-        <tr>
+        <tr data-id="svitshoty-2">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><div class="noimg">нет фото</div></td>
           <td class="cell-name">Свитшот белый (без размера)</td>
           <td>5</td>
@@ -721,7 +707,8 @@
           <td>0</td>
           <td class="cell-total">5</td>
         </tr>
-        <tr>
+        <tr data-id="svitshoty-3">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><div class="noimg">нет фото</div></td>
           <td class="cell-name">Свитшот чёрный (без размера)</td>
           <td>7</td>
@@ -737,10 +724,12 @@
     </section>
     <section class="tab-panel" id="tab-brak">
       <div class="section-total">Всего единиц: 385</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится в этом браузере</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
           <tr>
+            <th class="cell-drag"></th>
             <th class="cell-photo">Фото</th>
             <th class="cell-name">Название</th>
             <th>S</th>
@@ -751,8 +740,9 @@
             <th class="cell-total">Итого</th>
           </tr>
         </thead>
-        <tbody>
-        <tr>
+        <tbody id="tbody-brak" data-slug="brak">
+        <tr data-id="brak-0">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image7.jpg" alt="Зелёная, кор. рукав (брак, волна)" loading="lazy"></td>
           <td class="cell-name">Зелёная, кор. рукав (брак, волна)</td>
           <td>0</td>
@@ -762,7 +752,8 @@
           <td>0</td>
           <td class="cell-total">120</td>
         </tr>
-        <tr>
+        <tr data-id="brak-1">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image7.jpg" alt="Зелёная, кор. рукав (брак, волна)" loading="lazy"></td>
           <td class="cell-name">Зелёная, кор. рукав (брак, волна)</td>
           <td>0</td>
@@ -772,7 +763,8 @@
           <td>159</td>
           <td class="cell-total">202</td>
         </tr>
-        <tr>
+        <tr data-id="brak-2">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image11.jpg" alt="Синяя, кор. рукав (брак, волна)" loading="lazy"></td>
           <td class="cell-name">Синяя, кор. рукав (брак, волна)</td>
           <td>0</td>
@@ -782,7 +774,8 @@
           <td>9</td>
           <td class="cell-total">9</td>
         </tr>
-        <tr>
+        <tr data-id="brak-3">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image10.jpg" alt="Серая, кор. рукав (брак, волна)" loading="lazy"></td>
           <td class="cell-name">Серая, кор. рукав (брак, волна)</td>
           <td>10</td>
@@ -805,6 +798,35 @@ function showTab(slug) {
   document.getElementById('tab-' + slug).classList.add('active');
   document.querySelector('.tab-btn[data-tab="' + slug + '"]').classList.add('active');
 }
+
+function applySavedOrder(tbody) {
+  var slug = tbody.dataset.slug;
+  var saved = localStorage.getItem('stock-order-' + slug);
+  if (!saved) return;
+  var order;
+  try { order = JSON.parse(saved); } catch (e) { return; }
+  var rows = {};
+  Array.prototype.forEach.call(tbody.children, function(tr) { rows[tr.dataset.id] = tr; });
+  order.forEach(function(id) {
+    if (rows[id]) tbody.appendChild(rows[id]);
+  });
+}
+
+document.querySelectorAll('table.stock-table tbody').forEach(function(tbody) {
+  applySavedOrder(tbody);
+  if (window.Sortable) {
+    Sortable.create(tbody, {
+      handle: '.drag-handle',
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      dragClass: 'sortable-drag',
+      onEnd: function() {
+        var order = Array.prototype.map.call(tbody.children, function(tr) { return tr.dataset.id; });
+        localStorage.setItem('stock-order-' + tbody.dataset.slug, JSON.stringify(order));
+      }
+    });
+  }
+});
 </script>
 </body>
 </html>
