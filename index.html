@@ -33,6 +33,9 @@
   .noimg { width:56px; height:56px; border-radius:6px; background:#eee; color:#999; font-size:9px; display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2; }
   .cell-name { text-align:left; font-weight:600; white-space:normal; min-width:180px; }
   .cell-total { font-weight:700; }
+  table.stock-table thead th.cell-total.sortable-col { cursor:pointer; user-select:none; }
+  table.stock-table thead th.cell-total.sortable-col:hover { background:#333; }
+  .sort-arrow { display:inline-block; margin-left:4px; font-size:10px; opacity:0.85; }
   .sortable-ghost { background:#eef2ff !important; }
   .sortable-drag { background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.15); }
   .updated { text-align:center; color:#999; font-size:12px; margin-top:40px; }
@@ -854,6 +857,34 @@ document.querySelectorAll('table.stock-table tbody').forEach(function(tbody) {
       onEnd: function() { saveOrder(tbody); }
     });
   }
+});
+
+// Сортировка по клику на заголовок "Итого": 1-й клик — по убыванию (сначала самое
+// большое количество), 2-й клик — по возрастанию, дальше клики переключают направление.
+// Результат сортировки сразу сохраняется через saveOrder — так же, как при перетаскивании.
+document.querySelectorAll('table.stock-table thead th.cell-total').forEach(function(th) {
+  th.classList.add('sortable-col');
+  var arrow = document.createElement('span');
+  arrow.className = 'sort-arrow';
+  th.appendChild(arrow);
+  th.title = 'Нажмите, чтобы отсортировать по количеству';
+  th.addEventListener('click', function() {
+    var table = th.closest('table');
+    var tbody = table.querySelector('tbody');
+    var dir = th.dataset.sortDir === 'desc' ? 'asc' : 'desc';
+    th.dataset.sortDir = dir;
+    var rows = Array.prototype.slice.call(tbody.children);
+    rows.sort(function(a, b) {
+      var aCell = a.querySelector('td.cell-total');
+      var bCell = b.querySelector('td.cell-total');
+      var av = aCell ? parseFloat(aCell.textContent) || 0 : 0;
+      var bv = bCell ? parseFloat(bCell.textContent) || 0 : 0;
+      return dir === 'desc' ? bv - av : av - bv;
+    });
+    rows.forEach(function(r) { tbody.appendChild(r); });
+    arrow.textContent = dir === 'desc' ? '▼' : '▲';
+    saveOrder(tbody);
+  });
 });
 </script>
 </body>
