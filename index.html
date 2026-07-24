@@ -49,7 +49,7 @@
 <main>
     <section class="tab-panel" id="tab-upakovannye">
       <div class="section-total">Всего единиц: 3208</div>
-      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится в этом браузере</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
@@ -237,7 +237,7 @@
     </section>
     <section class="tab-panel" id="tab-neupakovannye">
       <div class="section-total">Всего единиц: 4180</div>
-      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится в этом браузере</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
@@ -436,7 +436,7 @@
     </section>
     <section class="tab-panel active" id="tab-obshee">
       <div class="section-total">Всего единиц: 7414</div>
-      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится в этом браузере</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
@@ -657,7 +657,7 @@
     </section>
     <section class="tab-panel" id="tab-svitshoty">
       <div class="section-total">Всего единиц: 178</div>
-      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится в этом браузере</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
@@ -724,7 +724,7 @@
     </section>
     <section class="tab-panel" id="tab-brak">
       <div class="section-total">Всего единиц: 385</div>
-      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится в этом браузере</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
@@ -792,6 +792,11 @@
   <div class="updated">Обновлено вручную · данные подготовлены Claude</div>
 </main>
 <script>
+// Общий бэкенд для хранения порядка строк (Railway + Postgres) —
+// порядок теперь одинаковый на всех устройствах, а не только в одном браузере.
+var API_BASE = 'https://wb-ostatki-api-production.up.railway.app';
+var API_KEY = 'nviWkUkRLf4dGAaVxiijir1kq3z8WeoG';
+
 function showTab(slug) {
   document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
@@ -799,12 +804,8 @@ function showTab(slug) {
   document.querySelector('.tab-btn[data-tab="' + slug + '"]').classList.add('active');
 }
 
-function applySavedOrder(tbody) {
-  var slug = tbody.dataset.slug;
-  var saved = localStorage.getItem('stock-order-' + slug);
-  if (!saved) return;
-  var order;
-  try { order = JSON.parse(saved); } catch (e) { return; }
+function applyOrder(tbody, order) {
+  if (!order) return;
   var rows = {};
   Array.prototype.forEach.call(tbody.children, function(tr) { rows[tr.dataset.id] = tr; });
   order.forEach(function(id) {
@@ -812,18 +813,45 @@ function applySavedOrder(tbody) {
   });
 }
 
+function loadOrder(tbody) {
+  var slug = tbody.dataset.slug;
+  // Сначала применяем локально закэшированный порядок, чтобы таблица не "прыгала"
+  // пока грузится ответ сервера. Сервер остаётся источником правды.
+  var cached = localStorage.getItem('stock-order-' + slug);
+  if (cached) {
+    try { applyOrder(tbody, JSON.parse(cached)); } catch (e) {}
+  }
+  fetch(API_BASE + '/api/state/order:' + slug)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.value) {
+        applyOrder(tbody, data.value);
+        localStorage.setItem('stock-order-' + slug, JSON.stringify(data.value));
+      }
+    })
+    .catch(function(e) { console.error('Не удалось загрузить порядок с сервера', e); });
+}
+
+function saveOrder(tbody) {
+  var slug = tbody.dataset.slug;
+  var order = Array.prototype.map.call(tbody.children, function(tr) { return tr.dataset.id; });
+  localStorage.setItem('stock-order-' + slug, JSON.stringify(order));
+  fetch(API_BASE + '/api/state/order:' + slug, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify(order)
+  }).catch(function(e) { console.error('Не удалось сохранить порядок на сервере', e); });
+}
+
 document.querySelectorAll('table.stock-table tbody').forEach(function(tbody) {
-  applySavedOrder(tbody);
+  loadOrder(tbody);
   if (window.Sortable) {
     Sortable.create(tbody, {
       handle: '.drag-handle',
       animation: 150,
       ghostClass: 'sortable-ghost',
       dragClass: 'sortable-drag',
-      onEnd: function() {
-        var order = Array.prototype.map.call(tbody.children, function(tr) { return tr.dataset.id; });
-        localStorage.setItem('stock-order-' + tbody.dataset.slug, JSON.stringify(order));
-      }
+      onEnd: function() { saveOrder(tbody); }
     });
   }
 });
