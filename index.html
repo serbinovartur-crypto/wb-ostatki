@@ -1004,9 +1004,12 @@
             <th class="cell-total">Итого на складах ВБ</th>
             <th>В пути к покупателю</th>
             <th>Возврат в пути</th>
+            <th class="cell-cost">Себестоимость</th>
+            <th class="cell-sum">Сумма</th>
           </tr>
         </thead>
         <tbody id="tbody-wb-stock"></tbody>
+      <tfoot><tr class="total-row"><td colspan="8" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
       </table>
       </div>
     </section>
@@ -1205,6 +1208,10 @@ loadCosts();
 // Backend сам обновляет кэш каждые ~20 минут; здесь мы просто читаем последний
 // снимок и раз в 5 минут переспрашиваем сервер, чтобы вкладка обновлялась сама,
 // без каких-либо действий пользователя.
+function escapeAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function buildSkuInfoMap() {
   // Сопоставляем артикул ВБ (nmId) с тем, что уже есть у нас на сайте:
   // собственное название и фото, которое мы сами подобрали для товара.
@@ -1285,6 +1292,11 @@ function renderWbStock(stockData, cardsData) {
     if (!item.matched) {
       nameHtml = '<span style="color:#777">' + nameHtml + '</span>';
     }
+    // Себестоимость берём из общего хранилища "costs" (то же самое, что и на
+    // остальных вкладках) по названию товара. Для товаров, которых нет в
+    // нашем списке, ключа пока не существует — стоимость будет 0, пока
+    // пользователь не впишет её сам прямо в этой таблице.
+    var costKey = item.name || item.vendorCode || item.nm;
     tr.innerHTML =
       '<td class="cell-photo">' + photoHtml + '</td>' +
       '<td class="cell-sku">' + item.nm + '</td>' +
@@ -1292,7 +1304,9 @@ function renderWbStock(stockData, cardsData) {
       '<td class="cell-name">' + nameHtml + '</td>' +
       '<td class="cell-total">' + item.qty + '</td>' +
       '<td>' + item.toClient + '</td>' +
-      '<td>' + item.fromClient + '</td>';
+      '<td>' + item.fromClient + '</td>' +
+      '<td class="cell-cost"><input type="number" class="cost-input" data-name="' + escapeAttr(costKey) + '" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>' +
+      '<td class="cell-sum">—</td>';
     tbody.appendChild(tr);
   });
 
@@ -1304,6 +1318,10 @@ function renderWbStock(stockData, cardsData) {
       updatedEl.textContent = 'Данные ещё не получены';
     }
   }
+
+  // Подставляем уже сохранённые значения себестоимости в новые поля и
+  // пересчитываем суммы (в том числе итог по этой вкладке).
+  applyCostsToInputs();
 }
 
 function loadWbStock() {
