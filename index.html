@@ -1255,11 +1255,15 @@ var WB_CATEGORIES = [
   { key: 'other', title: 'Другое', test: function() { return true; } }
 ];
 
-function categorizeWbItem(name) {
-  var n = (name || '').toLowerCase();
-  for (var i = 0; i < WB_CATEGORIES.length; i++) {
-    if (WB_CATEGORIES[i].test(n)) return WB_CATEGORIES[i].key;
-  }
+function categorizeWbItem(item) {
+  var n = (item.name || '').toLowerCase();
+  if (n.indexOf('костюм') !== -1) return 'suits';
+  if (n.indexOf('худи') !== -1) return 'hoodies';
+  if (n.indexOf('рубашк') !== -1) return 'shirts';
+  // Наши собственные товары на сайте называются по цвету/узору, без слова
+  // "рубашка" (например, "Синяя полоска, кор. рукав") — но все они рубашки,
+  // если это не худи/костюм (те случаи уже отловлены выше).
+  if (item.matched) return 'shirts';
   return 'other';
 }
 
@@ -1344,7 +1348,7 @@ function renderWbStock(stockData, cardsData) {
 
   var groups = {};
   WB_CATEGORIES.forEach(function(cat) { groups[cat.key] = []; });
-  list.forEach(function(item) { groups[categorizeWbItem(item.name)].push(item); });
+  list.forEach(function(item) { groups[categorizeWbItem(item)].push(item); });
 
   tbody.innerHTML = '';
   var totalQty = 0;
