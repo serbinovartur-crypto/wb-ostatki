@@ -82,7 +82,7 @@
           <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image1.jpg" alt="Голубая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Голубая полоска, кор. рукав</td>
-          <td class="cell-sku">374082605</td>
+          <td class="cell-sku">374082605, 1290477757</td>
           <td>20</td>
           <td>71</td>
           <td>66</td>
@@ -166,7 +166,7 @@
           <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image7.jpg" alt="Зелёная полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Зелёная полоска, кор. рукав</td>
-          <td class="cell-sku">223913571</td>
+          <td class="cell-sku">223913571, 1245447354</td>
           <td>172</td>
           <td>276</td>
           <td>130</td>
@@ -222,7 +222,7 @@
           <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image11.jpg" alt="Синяя полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Синяя полоска, кор. рукав</td>
-          <td class="cell-sku">223913573</td>
+          <td class="cell-sku">223913573, 1288097354</td>
           <td>50</td>
           <td>100</td>
           <td>120</td>
@@ -319,7 +319,7 @@
           <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image1.jpg" alt="Голубая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Голубая полоска, кор. рукав</td>
-          <td class="cell-sku">374082605</td>
+          <td class="cell-sku">374082605, 1290477757</td>
           <td>170</td>
           <td>100</td>
           <td>4</td>
@@ -375,7 +375,7 @@
           <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image7.jpg" alt="Зелёная полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Зелёная полоска, кор. рукав</td>
-          <td class="cell-sku">223913571</td>
+          <td class="cell-sku">223913571, 1245447354</td>
           <td>175</td>
           <td>403</td>
           <td>119</td>
@@ -459,7 +459,7 @@
           <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image11.jpg" alt="Синяя полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Синяя полоска, кор. рукав</td>
-          <td class="cell-sku">223913573</td>
+          <td class="cell-sku">223913573, 1288097354</td>
           <td>300</td>
           <td>232</td>
           <td>141</td>
@@ -570,7 +570,7 @@
           <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image1.jpg" alt="Голубая полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Голубая полоска, кор. рукав</td>
-          <td class="cell-sku">374082605</td>
+          <td class="cell-sku">374082605, 1290477757</td>
           <td>190</td>
           <td>171</td>
           <td>95</td>
@@ -654,7 +654,7 @@
           <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image7.jpg" alt="Зелёная полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Зелёная полоска, кор. рукав</td>
-          <td class="cell-sku">223913571</td>
+          <td class="cell-sku">223913571, 1245447354</td>
           <td>347</td>
           <td>679</td>
           <td>249</td>
@@ -710,7 +710,7 @@
           <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
           <td class="cell-photo"><img src="image11.jpg" alt="Синяя полоска, кор. рукав" loading="lazy"></td>
           <td class="cell-name">Синяя полоска, кор. рукав</td>
-          <td class="cell-sku">223913573</td>
+          <td class="cell-sku">223913573, 1288097354</td>
           <td>350</td>
           <td>332</td>
           <td>261</td>
@@ -1215,16 +1215,22 @@ function escapeAttr(s) {
 function buildSkuInfoMap() {
   // Сопоставляем артикул ВБ (nmId) с тем, что уже есть у нас на сайте:
   // собственное название и фото, которое мы сами подобрали для товара.
+  // Одна и та же физическая вещь иногда продаётся под несколькими артикулами
+  // ВБ сразу — в ячейке "Артикул" они перечислены через запятую, поэтому
+  // каждый из них по отдельности указывает на один и тот же товар.
   var map = {};
   document.querySelectorAll('#tbody-obshee tr').forEach(function(tr) {
     var skuCell = tr.querySelector('.cell-sku');
     var nameCell = tr.querySelector('.cell-name');
     var imgEl = tr.querySelector('.cell-photo img');
     if (!skuCell || !nameCell) return;
-    var sku = skuCell.textContent.trim();
-    if (sku && sku !== '—') {
-      map[sku] = { name: nameCell.textContent.trim(), photo: imgEl ? imgEl.getAttribute('src') : null };
-    }
+    var skuText = skuCell.textContent.trim();
+    if (!skuText || skuText === '—') return;
+    var info = { name: nameCell.textContent.trim(), photo: imgEl ? imgEl.getAttribute('src') : null };
+    skuText.split(',').forEach(function(part) {
+      var sku = part.trim();
+      if (sku) map[sku] = info;
+    });
   });
   return map;
 }
