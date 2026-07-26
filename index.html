@@ -991,7 +991,7 @@
       </div>
     </section>
     <section class="tab-panel" id="tab-wb-stock">
-      <div class="section-total" id="wb-stock-total">Итого на складах ВБ: —</div>
+      <div class="section-total" id="wb-stock-total">Загрузка данных…</div>
       <div class="hint" id="wb-stock-updated">Данные ещё не получены</div>
       <div class="hint" id="wb-stock-error" style="display:none; color:#b00020;"></div>
       <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк внутри категории — порядок сохранится на всех устройствах</div>
@@ -1004,15 +1004,16 @@
             <th class="cell-sku">Артикул</th>
             <th class="cell-sku">Артикул продавца</th>
             <th class="cell-name">Название</th>
-            <th class="cell-total">Итого на складах ВБ</th>
+            <th>На складах ВБ</th>
             <th>В пути к покупателю</th>
             <th>Возврат в пути</th>
+            <th class="cell-total">Итого</th>
             <th class="cell-cost">Себестоимость</th>
             <th class="cell-sum">Сумма</th>
           </tr>
         </thead>
         <tbody id="tbody-wb-stock" data-slug="wb-stock"></tbody>
-      <tfoot><tr class="total-row"><td colspan="9" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
+      <tfoot><tr class="total-row"><td colspan="10" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
       </table>
       </div>
     </section>
@@ -1351,10 +1352,20 @@ function renderWbStock(stockData, cardsData) {
   list.forEach(function(item) { groups[categorizeWbItem(item)].push(item); });
 
   tbody.innerHTML = '';
-  var totalQty = 0;
+  var totalWarehouse = 0;
+  var totalToClient = 0;
+  var totalFromClient = 0;
 
   function renderRow(item) {
-    totalQty += item.qty;
+    totalWarehouse += item.qty;
+    totalToClient += item.toClient;
+    totalFromClient += item.fromClient;
+    // "Итого" — это не только то, что физически лежит на складе ВБ прямо
+    // сейчас, а вся партия, в которую вложены деньги: то, что уже едет к
+    // покупателю, и то, что едет обратно как возврат, — тоже наш товар с
+    // себестоимостью, просто временно не на складе. Именно от этой суммы
+    // считаем себестоимость и сумму ниже.
+    var grandTotal = item.qty + item.toClient + item.fromClient;
     var tr = document.createElement('tr');
     tr.dataset.id = 'wb-stock-' + item.nm;
     var photoHtml = item.photo
@@ -1377,9 +1388,10 @@ function renderWbStock(stockData, cardsData) {
       '<td class="cell-sku">' + item.nm + '</td>' +
       '<td class="cell-sku">' + item.vendorCode + '</td>' +
       '<td class="cell-name">' + nameHtml + '</td>' +
-      '<td class="cell-total">' + item.qty + '</td>' +
+      '<td>' + item.qty + '</td>' +
       '<td>' + item.toClient + '</td>' +
       '<td>' + item.fromClient + '</td>' +
+      '<td class="cell-total">' + grandTotal + '</td>' +
       '<td class="cell-cost"><input type="number" class="cost-input" data-name="' + escapeAttr(costKey) + '" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>' +
       '<td class="cell-sum">—</td>';
     tbody.appendChild(tr);
@@ -1390,12 +1402,19 @@ function renderWbStock(stockData, cardsData) {
     if (!items.length) return;
     var headerRow = document.createElement('tr');
     headerRow.className = 'wb-category-row';
-    headerRow.innerHTML = '<td colspan="10">' + cat.title + '</td>';
+    headerRow.innerHTML = '<td colspan="11">' + cat.title + '</td>';
     tbody.appendChild(headerRow);
     items.forEach(renderRow);
   });
 
-  if (totalEl) totalEl.textContent = 'Итого на складах ВБ: ' + totalQty;
+  if (totalEl) {
+    var grandAll = totalWarehouse + totalToClient + totalFromClient;
+    totalEl.textContent =
+      'На складах ВБ: ' + totalWarehouse +
+      ' · В пути к покупателю: ' + totalToClient +
+      ' · Возврат в пути: ' + totalFromClient +
+      ' · Итого: ' + grandAll;
+  }
   if (updatedEl) {
     if (stockData && stockData.fetchedAt) {
       updatedEl.textContent = 'Обновлено: ' + new Date(stockData.fetchedAt).toLocaleString('ru-RU');
