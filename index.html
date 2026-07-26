@@ -53,7 +53,7 @@
   <p>Актуальные остатки на складе</p>
 </header>
 <div class="tabs">
-  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="svitshoty" onclick="showTab('svitshoty')">Свитшоты</button><button class="tab-btn" data-tab="brak" onclick="showTab('brak')">Брак (волна)</button>
+  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="svitshoty" onclick="showTab('svitshoty')">Свитшоты</button><button class="tab-btn" data-tab="brak" onclick="showTab('brak')">Брак (волна)</button><button class="tab-btn" data-tab="wb-stock" onclick="showTab('wb-stock')">Остатки на ВБ</button>
 </div>
 <main>
     <section class="tab-panel" id="tab-upakovannye">
@@ -989,6 +989,25 @@
       </table>
       </div>
     </section>
+    <section class="tab-panel" id="tab-wb-stock">
+      <div class="section-total" id="wb-stock-total">Итого на складах ВБ: —</div>
+      <div class="hint" id="wb-stock-updated">Данные ещё не получены</div>
+      <div class="hint" id="wb-stock-error" style="display:none; color:#b00020;"></div>
+      <div class="table-wrap">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th class="cell-sku">Артикул</th>
+            <th class="cell-name">Название</th>
+            <th class="cell-total">Итого на складах ВБ</th>
+            <th>В пути к покупателю</th>
+            <th>Возврат в пути</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-wb-stock"></tbody>
+      </table>
+      </div>
+    </section>
   <div class="updated">Обновлено вручную · данные подготовлены Claude</div>
 </main>
 <script>
@@ -1015,6 +1034,7 @@ function applyOrder(tbody, order) {
 
 function loadOrder(tbody) {
   var slug = tbody.dataset.slug;
+  if (!slug) return; // например, таблица "Остатки на ВБ" — у неё нет ручного порядка строк
   // Сначала применяем локально закэшированный порядок, чтобы таблица не "прыгала"
   // пока грузится ответ сервера. Сервер остаётся источником правды.
   var cached = localStorage.getItem('stock-order-' + slug);
@@ -1034,6 +1054,7 @@ function loadOrder(tbody) {
 
 function saveOrder(tbody) {
   var slug = tbody.dataset.slug;
+  if (!slug) return; // например, таблица "Остатки на ВБ" — у неё нет ручного порядка строк
   var order = Array.prototype.map.call(tbody.children, function(tr) { return tr.dataset.id; });
   localStorage.setItem('stock-order-' + slug, JSON.stringify(order));
   fetch(API_BASE + '/api/state/order:' + slug, {
@@ -1177,6 +1198,103 @@ document.addEventListener('input', function(e) {
 });
 
 loadCosts();
+
+// Остатки на складах ВБ (Wildberries Seller API, через backend-кэш).
+// Backend сам обновляет кэш каждые ~20 минут; здесь мы просто читаем последний
+// снимок и раз в 5 минут переспрашиваем сервер, чтобы вкладка обновлялась сама,
+// без каких-либо действий пользователя.
+function buildSkuNameMap() {
+  var map = {};
+  document.querySelectorAll('#tbody-obshee tr').forEach(function(tr) {
+    var skuCell = tr.querySelector('.cell-sku');
+    var nameCell = tr.querySelector('.cell-name');
+    if (!skuCell || !nameCell) return;
+    var sku = skuCell.textContent.trim();
+    if (sku && sku !== '—') map[sku] = nameCell.textContent.trim();
+  });
+  return map;
+}
+
+function renderWbStock(data) {
+  var tbody = document.getElementById('tbody-wb-stock');
+  var updatedEl = document.getElementById('wb-stock-updated');
+  var errorEl = document.getElementById('wb-stock-error');
+  var totalEl = document.getElementById('wb-stock-total');
+  if (!tbody) return;
+
+  var rows = (data && data.rows) || [];
+
+  if (data && data.error && !rows.length) {
+    errorEl.textContent = 'Не удалось получить остатки от Wildberries: ' + data.error;
+    errorEl.style.display = 'block';
+  } else {
+    errorEl.style.display = 'none';
+  }
+
+  var byNm = {};
+  rows.forEach(function(r) {
+    var nm = String(r.nmId);
+    if (!byNm[nm]) byNm[nm] = { qty: 0, toClient: 0, fromClient: 0 };
+    byNm[nm].qty += Number(r.quantity) || 0;
+    byNm[nm].toClient += Number(r.inWayToClient) || 0;
+    byNm[nm].fromClient += Number(r.inWayFromClient) || 0;
+  });
+
+  var nameMap = buildSkuNameMap();
+  var list = Object.keys(byNm).map(function(nm) {
+    return {
+      nm: nm,
+      name: nameMap[nm] || null,
+      qty: byNm[nm].qty,
+      toClient: byNm[nm].toClient,
+      fromClient: byNm[nm].fromClient
+    };
+  });
+  list.sort(function(a, b) { return b.qty - a.qty; });
+
+  tbody.innerHTML = '';
+  var totalQty = 0;
+  list.forEach(function(item) {
+    totalQty += item.qty;
+    var tr = document.createElement('tr');
+    var nameHtml = item.name
+      ? item.name
+      : '<span style="color:#aaa">нет в списке товаров сайта</span>';
+    tr.innerHTML =
+      '<td class="cell-sku">' + item.nm + '</td>' +
+      '<td class="cell-name">' + nameHtml + '</td>' +
+      '<td class="cell-total">' + item.qty + '</td>' +
+      '<td>' + item.toClient + '</td>' +
+      '<td>' + item.fromClient + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  if (totalEl) totalEl.textContent = 'Итого на складах ВБ: ' + totalQty;
+  if (updatedEl) {
+    if (data && data.fetchedAt) {
+      updatedEl.textContent = 'Обновлено: ' + new Date(data.fetchedAt).toLocaleString('ru-RU');
+    } else if (!rows.length) {
+      updatedEl.textContent = 'Данные ещё не получены';
+    }
+  }
+}
+
+function loadWbStock() {
+  fetch(API_BASE + '/api/wb/stock')
+    .then(function(r) { return r.json(); })
+    .then(renderWbStock)
+    .catch(function(e) {
+      console.error('Не удалось загрузить остатки ВБ', e);
+      var errorEl = document.getElementById('wb-stock-error');
+      if (errorEl) {
+        errorEl.textContent = 'Не удалось связаться с сервером';
+        errorEl.style.display = 'block';
+      }
+    });
+}
+
+loadWbStock();
+setInterval(loadWbStock, 5 * 60 * 1000);
 </script>
 </body>
 </html>
