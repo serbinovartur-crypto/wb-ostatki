@@ -997,7 +997,9 @@
       <table class="stock-table">
         <thead>
           <tr>
+            <th class="cell-photo">Фото</th>
             <th class="cell-sku">Артикул</th>
+            <th class="cell-sku">Артикул продавца</th>
             <th class="cell-name">Название</th>
             <th class="cell-total">Итого на складах ВБ</th>
             <th>В пути к покупателю</th>
@@ -1203,29 +1205,34 @@ loadCosts();
 // Backend сам обновляет кэш каждые ~20 минут; здесь мы просто читаем последний
 // снимок и раз в 5 минут переспрашиваем сервер, чтобы вкладка обновлялась сама,
 // без каких-либо действий пользователя.
-function buildSkuNameMap() {
+function buildSkuInfoMap() {
+  // Сопоставляем артикул ВБ (nmId) с тем, что уже есть у нас на сайте:
+  // собственное название и фото, которое мы сами подобрали для товара.
   var map = {};
   document.querySelectorAll('#tbody-obshee tr').forEach(function(tr) {
     var skuCell = tr.querySelector('.cell-sku');
     var nameCell = tr.querySelector('.cell-name');
+    var imgEl = tr.querySelector('.cell-photo img');
     if (!skuCell || !nameCell) return;
     var sku = skuCell.textContent.trim();
-    if (sku && sku !== '—') map[sku] = nameCell.textContent.trim();
+    if (sku && sku !== '—') {
+      map[sku] = { name: nameCell.textContent.trim(), photo: imgEl ? imgEl.getAttribute('src') : null };
+    }
   });
   return map;
 }
 
-function renderWbStock(data) {
+function renderWbStock(stockData, cardsData) {
   var tbody = document.getElementById('tbody-wb-stock');
   var updatedEl = document.getElementById('wb-stock-updated');
   var errorEl = document.getElementById('wb-stock-error');
   var totalEl = document.getElementById('wb-stock-total');
   if (!tbody) return;
 
-  var rows = (data && data.rows) || [];
+  var rows = (stockData && stockData.rows) || [];
 
-  if (data && data.error && !rows.length) {
-    errorEl.textContent = 'Не удалось получить остатки от Wildberries: ' + data.error;
+  if (stockData && stockData.error && !rows.length) {
+    errorEl.textContent = 'Не удалось получить остатки от Wildberries: ' + stockData.error;
     errorEl.style.display = 'block';
   } else {
     errorEl.style.display = 'none';
@@ -1240,11 +1247,23 @@ function renderWbStock(data) {
     byNm[nm].fromClient += Number(r.inWayFromClient) || 0;
   });
 
-  var nameMap = buildSkuNameMap();
+  // Карточки товаров с самого ВБ (артикул продавца, название, фото) — нужны
+  // для строк, которых нет в нашем собственном списке товаров на сайте.
+  var wbCards = {};
+  ((cardsData && cardsData.cards) || []).forEach(function(c) {
+    wbCards[String(c.nmID)] = c;
+  });
+
+  var siteInfo = buildSkuInfoMap();
   var list = Object.keys(byNm).map(function(nm) {
+    var site = siteInfo[nm] || null;
+    var wbCard = wbCards[nm] || null;
     return {
       nm: nm,
-      name: nameMap[nm] || null,
+      vendorCode: wbCard && wbCard.vendorCode ? wbCard.vendorCode : '—',
+      name: site ? site.name : (wbCard && wbCard.title ? wbCard.title : null),
+      photo: site && site.photo ? site.photo : (wbCard && wbCard.photo ? wbCard.photo : null),
+      matched: !!site,
       qty: byNm[nm].qty,
       toClient: byNm[nm].toClient,
       fromClient: byNm[nm].fromClient
@@ -1257,11 +1276,19 @@ function renderWbStock(data) {
   list.forEach(function(item) {
     totalQty += item.qty;
     var tr = document.createElement('tr');
+    var photoHtml = item.photo
+      ? '<img src="' + item.photo + '" alt="" loading="lazy">'
+      : '<div class="noimg">нет фото</div>';
     var nameHtml = item.name
       ? item.name
-      : '<span style="color:#aaa">нет в списке товаров сайта</span>';
+      : '<span style="color:#aaa">нет данных</span>';
+    if (!item.matched) {
+      nameHtml = '<span style="color:#777">' + nameHtml + '</span>';
+    }
     tr.innerHTML =
+      '<td class="cell-photo">' + photoHtml + '</td>' +
       '<td class="cell-sku">' + item.nm + '</td>' +
+      '<td class="cell-sku">' + item.vendorCode + '</td>' +
       '<td class="cell-name">' + nameHtml + '</td>' +
       '<td class="cell-total">' + item.qty + '</td>' +
       '<td>' + item.toClient + '</td>' +
@@ -1271,8 +1298,8 @@ function renderWbStock(data) {
 
   if (totalEl) totalEl.textContent = 'Итого на складах ВБ: ' + totalQty;
   if (updatedEl) {
-    if (data && data.fetchedAt) {
-      updatedEl.textContent = 'Обновлено: ' + new Date(data.fetchedAt).toLocaleString('ru-RU');
+    if (stockData && stockData.fetchedAt) {
+      updatedEl.textContent = 'Обновлено: ' + new Date(stockData.fetchedAt).toLocaleString('ru-RU');
     } else if (!rows.length) {
       updatedEl.textContent = 'Данные ещё не получены';
     }
@@ -1280,9 +1307,11 @@ function renderWbStock(data) {
 }
 
 function loadWbStock() {
-  fetch(API_BASE + '/api/wb/stock')
-    .then(function(r) { return r.json(); })
-    .then(renderWbStock)
+  Promise.all([
+    fetch(API_BASE + '/api/wb/stock').then(function(r) { return r.json(); }),
+    fetch(API_BASE + '/api/wb/cards').then(function(r) { return r.json(); }).catch(function() { return { cards: [] }; })
+  ])
+    .then(function(results) { renderWbStock(results[0], results[1]); })
     .catch(function(e) {
       console.error('Не удалось загрузить остатки ВБ', e);
       var errorEl = document.getElementById('wb-stock-error');
