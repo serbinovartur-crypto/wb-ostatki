@@ -45,6 +45,7 @@
   .sortable-ghost { background:#eef2ff !important; }
   .sortable-drag { background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.15); }
   .updated { text-align:center; color:#999; font-size:12px; margin-top:40px; }
+  tr.wb-category-row td { background:#eeece5; font-weight:700; text-align:left; color:#1b1b1b; }
 </style>
 </head>
 <body>
@@ -993,10 +994,12 @@
       <div class="section-total" id="wb-stock-total">Итого на складах ВБ: —</div>
       <div class="hint" id="wb-stock-updated">Данные ещё не получены</div>
       <div class="hint" id="wb-stock-error" style="display:none; color:#b00020;"></div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк внутри категории — порядок сохранится на всех устройствах</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
           <tr>
+            <th class="cell-drag"></th>
             <th class="cell-photo">Фото</th>
             <th class="cell-sku">Артикул</th>
             <th class="cell-sku">Артикул продавца</th>
@@ -1008,8 +1011,8 @@
             <th class="cell-sum">Сумма</th>
           </tr>
         </thead>
-        <tbody id="tbody-wb-stock"></tbody>
-      <tfoot><tr class="total-row"><td colspan="8" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
+        <tbody id="tbody-wb-stock" data-slug="wb-stock"></tbody>
+      <tfoot><tr class="total-row"><td colspan="9" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
       </table>
       </div>
     </section>
@@ -1059,8 +1062,10 @@ function loadOrder(tbody) {
 
 function saveOrder(tbody) {
   var slug = tbody.dataset.slug;
-  if (!slug) return; // например, таблица "Остатки на ВБ" — у неё нет ручного порядка строк
-  var order = Array.prototype.map.call(tbody.children, function(tr) { return tr.dataset.id; });
+  if (!slug) return;
+  // .filter(Boolean) — на вкладке "Остатки на ВБ" среди строк есть служебные
+  // строки-заголовки категорий без data-id, их в порядок сохранять не нужно.
+  var order = Array.prototype.map.call(tbody.children, function(tr) { return tr.dataset.id; }).filter(Boolean);
   localStorage.setItem('stock-order-' + slug, JSON.stringify(order));
   fetch(API_BASE + '/api/state/order:' + slug, {
     method: 'PUT',
@@ -1086,6 +1091,11 @@ document.querySelectorAll('table.stock-table tbody').forEach(function(tbody) {
 // большое количество), 2-й клик — по возрастанию, дальше клики переключают направление.
 // Результат сортировки сразу сохраняется через saveOrder — так же, как при перетаскивании.
 document.querySelectorAll('table.stock-table thead th.cell-total').forEach(function(th) {
+  var ownTbody = th.closest('table').querySelector('tbody');
+  // На вкладке "Остатки на ВБ" строки разбиты на категории (рубашки/худи/
+  // костюмы) — сортировка по клику "плоско" по всей таблице перемешала бы их
+  // между собой, поэтому для неё эту кнопку не включаем.
+  if (ownTbody && ownTbody.dataset.slug === 'wb-stock') return;
   th.classList.add('sortable-col');
   var arrow = document.createElement('span');
   arrow.className = 'sort-arrow';
@@ -1235,6 +1245,42 @@ function buildSkuInfoMap() {
   return map;
 }
 
+// Категории для вкладки "Остатки на ВБ" — чтобы рубашки, худи и костюмы не
+// перемешивались между собой в одном списке. Определяем по названию товара
+// (зип-худи попадает в ту же категорию, что и худи — там тоже есть "худи").
+var WB_CATEGORIES = [
+  { key: 'shirts', title: 'Рубашки', test: function(n) { return n.indexOf('рубашк') !== -1; } },
+  { key: 'hoodies', title: 'Худи и зип-худи', test: function(n) { return n.indexOf('худи') !== -1; } },
+  { key: 'suits', title: 'Костюмы', test: function(n) { return n.indexOf('костюм') !== -1; } },
+  { key: 'other', title: 'Другое', test: function() { return true; } }
+];
+
+function categorizeWbItem(name) {
+  var n = (name || '').toLowerCase();
+  for (var i = 0; i < WB_CATEGORIES.length; i++) {
+    if (WB_CATEGORIES[i].test(n)) return WB_CATEGORIES[i].key;
+  }
+  return 'other';
+}
+
+// Применяет ранее сохранённый пользователем порядок (перетаскиванием) внутри
+// одной категории. Товары, которых в сохранённом порядке ещё нет (новые),
+// добавляются после — в том порядке, в котором их отсортировали по умолчанию
+// (по убыванию количества).
+function applyCustomOrderWithinGroup(items, savedOrder) {
+  if (!savedOrder || !savedOrder.length) return items;
+  var pos = {};
+  savedOrder.forEach(function(id, i) { pos[id] = i; });
+  var known = [];
+  var unknown = [];
+  items.forEach(function(item) {
+    var id = 'wb-stock-' + item.nm;
+    if (pos.hasOwnProperty(id)) known.push(item); else unknown.push(item);
+  });
+  known.sort(function(a, b) { return pos['wb-stock-' + a.nm] - pos['wb-stock-' + b.nm]; });
+  return known.concat(unknown);
+}
+
 function renderWbStock(stockData, cardsData) {
   var tbody = document.getElementById('tbody-wb-stock');
   var updatedEl = document.getElementById('wb-stock-updated');
@@ -1277,18 +1323,36 @@ function renderWbStock(stockData, cardsData) {
       name: site ? site.name : (wbCard && wbCard.title ? wbCard.title : null),
       photo: site && site.photo ? site.photo : (wbCard && wbCard.photo ? wbCard.photo : null),
       matched: !!site,
+      hasWbCard: !!wbCard,
       qty: byNm[nm].qty,
       toClient: byNm[nm].toClient,
       fromClient: byNm[nm].fromClient
     };
   });
+
+  // Убираем "мёртвые" карточки: товар остался в отчёте по остаткам, но самой
+  // карточки на ВБ уже нет (не сопоставлен с сайтом, нет фото, нет данных от
+  // ВБ вообще) — это старые/удалённые карточки, показывать их незачем.
+  list = list.filter(function(item) { return item.matched || item.hasWbCard; });
+
   list.sort(function(a, b) { return b.qty - a.qty; });
+
+  // Достаём последний известный порядок (из localStorage — мгновенно,
+  // без ожидания сети) и раскладываем товары по категориям.
+  var savedOrder = null;
+  try { savedOrder = JSON.parse(localStorage.getItem('stock-order-wb-stock') || 'null'); } catch (e) { savedOrder = null; }
+
+  var groups = {};
+  WB_CATEGORIES.forEach(function(cat) { groups[cat.key] = []; });
+  list.forEach(function(item) { groups[categorizeWbItem(item.name)].push(item); });
 
   tbody.innerHTML = '';
   var totalQty = 0;
-  list.forEach(function(item) {
+
+  function renderRow(item) {
     totalQty += item.qty;
     var tr = document.createElement('tr');
+    tr.dataset.id = 'wb-stock-' + item.nm;
     var photoHtml = item.photo
       ? '<img src="' + item.photo + '" alt="" loading="lazy">'
       : '<div class="noimg">нет фото</div>';
@@ -1304,6 +1368,7 @@ function renderWbStock(stockData, cardsData) {
     // пользователь не впишет её сам прямо в этой таблице.
     var costKey = item.name || item.vendorCode || item.nm;
     tr.innerHTML =
+      '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
       '<td class="cell-photo">' + photoHtml + '</td>' +
       '<td class="cell-sku">' + item.nm + '</td>' +
       '<td class="cell-sku">' + item.vendorCode + '</td>' +
@@ -1314,6 +1379,16 @@ function renderWbStock(stockData, cardsData) {
       '<td class="cell-cost"><input type="number" class="cost-input" data-name="' + escapeAttr(costKey) + '" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>' +
       '<td class="cell-sum">—</td>';
     tbody.appendChild(tr);
+  }
+
+  WB_CATEGORIES.forEach(function(cat) {
+    var items = applyCustomOrderWithinGroup(groups[cat.key], savedOrder);
+    if (!items.length) return;
+    var headerRow = document.createElement('tr');
+    headerRow.className = 'wb-category-row';
+    headerRow.innerHTML = '<td colspan="10">' + cat.title + '</td>';
+    tbody.appendChild(headerRow);
+    items.forEach(renderRow);
   });
 
   if (totalEl) totalEl.textContent = 'Итого на складах ВБ: ' + totalQty;
