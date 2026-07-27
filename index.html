@@ -54,12 +54,13 @@
   <p>Актуальные остатки на складе</p>
 </header>
 <div class="tabs">
-  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="svitshoty" onclick="showTab('svitshoty')">Свитшоты</button><button class="tab-btn" data-tab="brak" onclick="showTab('brak')">Брак (волна)</button><button class="tab-btn" data-tab="wb-stock" onclick="showTab('wb-stock')">Остатки на ВБ</button>
+  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="svitshoty" onclick="showTab('svitshoty')">Свитшоты</button><button class="tab-btn" data-tab="brak" onclick="showTab('brak')">Брак (волна)</button><button class="tab-btn" data-tab="wb-stock" onclick="showTab('wb-stock')">Остатки на ВБ</button><button class="tab-btn" data-tab="journal" onclick="showTab('journal')">Журнал списаний</button>
 </div>
 <main>
     <section class="tab-panel" id="tab-upakovannye">
-      <div class="section-total">Всего единиц: 3208</div>
+      <div class="section-total">Загрузка данных…</div>
       <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
+      <div class="hint">Остатки теперь списываются автоматически при отгрузке (см. вкладку «Журнал списаний»)</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
@@ -78,224 +79,13 @@
             <th class="cell-sum">Сумма</th>
           </tr>
         </thead>
-        <tbody id="tbody-upakovannye" data-slug="upakovannye">
-        <tr data-id="upakovannye-0">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image1.jpg" alt="Голубая полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Голубая полоска, кор. рукав</td>
-          <td class="cell-sku">374082605, 1290477757</td>
-          <td>20</td>
-          <td>71</td>
-          <td>66</td>
-          <td>97</td>
-          <td>42</td>
-          <td class="cell-total">296</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Голубая полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-1">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image2.jpg" alt="Сине-бело-коричневая, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Сине-бело-коричневая, кор. рукав</td>
-          <td class="cell-sku">409952307</td>
-          <td>121</td>
-          <td>65</td>
-          <td>36</td>
-          <td>45</td>
-          <td>25</td>
-          <td class="cell-total">292</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Сине-бело-коричневая, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-2">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image3.jpg" alt="Коричневая полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Коричневая полоска, кор. рукав</td>
-          <td class="cell-sku">246580138</td>
-          <td>0</td>
-          <td>30</td>
-          <td>30</td>
-          <td>17</td>
-          <td>29</td>
-          <td class="cell-total">106</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Коричневая полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-3">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image4.jpg" alt="С цветами, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">С цветами, кор. рукав</td>
-          <td class="cell-sku">246580141</td>
-          <td>0</td>
-          <td>30</td>
-          <td>30</td>
-          <td>30</td>
-          <td>30</td>
-          <td class="cell-total">120</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="С цветами, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-4">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image5.jpg" alt="Бело-голубая, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Бело-голубая, кор. рукав</td>
-          <td class="cell-sku">240478091</td>
-          <td>0</td>
-          <td>35</td>
-          <td>35</td>
-          <td>35</td>
-          <td>40</td>
-          <td class="cell-total">145</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Бело-голубая, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-5">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image6.jpg" alt="Белая вышивка, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Белая вышивка, кор. рукав</td>
-          <td class="cell-sku">240445526</td>
-          <td>20</td>
-          <td>46</td>
-          <td>6</td>
-          <td>0</td>
-          <td>0</td>
-          <td class="cell-total">72</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Белая вышивка, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-6">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image7.jpg" alt="Зелёная полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Зелёная полоска, кор. рукав</td>
-          <td class="cell-sku">223913571, 1245447354</td>
-          <td>172</td>
-          <td>276</td>
-          <td>130</td>
-          <td>34</td>
-          <td>25</td>
-          <td class="cell-total">637</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зелёная полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-7">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image8.jpg" alt="Разноцветная полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Разноцветная полоска, кор. рукав</td>
-          <td class="cell-sku">246580140</td>
-          <td>0</td>
-          <td>88</td>
-          <td>35</td>
-          <td>0</td>
-          <td>3</td>
-          <td class="cell-total">126</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Разноцветная полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-8">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image9.jpg" alt="Бежевая, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Бежевая, кор. рукав</td>
-          <td class="cell-sku">240478094</td>
-          <td>0</td>
-          <td>40</td>
-          <td>40</td>
-          <td>40</td>
-          <td>13</td>
-          <td class="cell-total">133</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Бежевая, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-9">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image10.jpg" alt="Серая полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Серая полоска, кор. рукав</td>
-          <td class="cell-sku">223913572</td>
-          <td>0</td>
-          <td>21</td>
-          <td>20</td>
-          <td>0</td>
-          <td>0</td>
-          <td class="cell-total">41</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Серая полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-10">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image11.jpg" alt="Синяя полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Синяя полоска, кор. рукав</td>
-          <td class="cell-sku">223913573, 1288097354</td>
-          <td>50</td>
-          <td>100</td>
-          <td>120</td>
-          <td>128</td>
-          <td>110</td>
-          <td class="cell-total">508</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Синяя полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-11">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image12.jpg" alt="Тиффани, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Тиффани, кор. рукав</td>
-          <td class="cell-sku">246580142</td>
-          <td>0</td>
-          <td>30</td>
-          <td>30</td>
-          <td>30</td>
-          <td>30</td>
-          <td class="cell-total">120</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Тиффани, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-12">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image13.jpg" alt="Белая, длинный рукав" loading="lazy"></td>
-          <td class="cell-name">Белая, длинный рукав</td>
-          <td class="cell-sku">240548340</td>
-          <td>100</td>
-          <td>55</td>
-          <td>88</td>
-          <td>3</td>
-          <td>222</td>
-          <td class="cell-total">468</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Белая, длинный рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-13">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image14.jpg" alt="Зелёная, длинный рукав" loading="lazy"></td>
-          <td class="cell-name">Зелёная, длинный рукав</td>
-          <td class="cell-sku">259215392</td>
-          <td>60</td>
-          <td>0</td>
-          <td>0</td>
-          <td>30</td>
-          <td>0</td>
-          <td class="cell-total">90</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зелёная, длинный рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="upakovannye-14">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image15.jpg" alt="Чёрная, длинный рукав" loading="lazy"></td>
-          <td class="cell-name">Чёрная, длинный рукав</td>
-          <td class="cell-sku">255211396</td>
-          <td>0</td>
-          <td>14</td>
-          <td>2</td>
-          <td>6</td>
-          <td>32</td>
-          <td class="cell-total">54</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Чёрная, длинный рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        </tbody>
+        <tbody id="tbody-upakovannye" data-slug="upakovannye"></tbody>
       <tfoot><tr class="total-row"><td colspan="11" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
       </table>
       </div>
     </section>
     <section class="tab-panel" id="tab-neupakovannye">
-      <div class="section-total">Всего единиц: 4180</div>
+      <div class="section-total">Загрузка данных…</div>
       <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
       <div class="table-wrap">
       <table class="stock-table">
@@ -315,238 +105,13 @@
             <th class="cell-sum">Сумма</th>
           </tr>
         </thead>
-        <tbody id="tbody-neupakovannye" data-slug="neupakovannye">
-        <tr data-id="neupakovannye-0">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image1.jpg" alt="Голубая полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Голубая полоска, кор. рукав</td>
-          <td class="cell-sku">374082605, 1290477757</td>
-          <td>170</td>
-          <td>100</td>
-          <td>4</td>
-          <td>1</td>
-          <td>2</td>
-          <td class="cell-total">277</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Голубая полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-1">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image3.jpg" alt="Коричневая полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Коричневая полоска, кор. рукав</td>
-          <td class="cell-sku">246580138</td>
-          <td>0</td>
-          <td>55</td>
-          <td>25</td>
-          <td>1</td>
-          <td>1</td>
-          <td class="cell-total">82</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Коричневая полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-2">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image5.jpg" alt="Бело-голубая, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Бело-голубая, кор. рукав</td>
-          <td class="cell-sku">240478091</td>
-          <td>0</td>
-          <td>184</td>
-          <td>188</td>
-          <td>136</td>
-          <td>17</td>
-          <td class="cell-total">525</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Бело-голубая, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-3">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image6.jpg" alt="Белая вышивка, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Белая вышивка, кор. рукав</td>
-          <td class="cell-sku">240445526</td>
-          <td>61</td>
-          <td>28</td>
-          <td>1</td>
-          <td>1</td>
-          <td>0</td>
-          <td class="cell-total">91</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Белая вышивка, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-4">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image7.jpg" alt="Зелёная полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Зелёная полоска, кор. рукав</td>
-          <td class="cell-sku">223913571, 1245447354</td>
-          <td>175</td>
-          <td>403</td>
-          <td>119</td>
-          <td>15</td>
-          <td>7</td>
-          <td class="cell-total">719</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зелёная полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-5">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image4.jpg" alt="С цветами, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">С цветами, кор. рукав</td>
-          <td class="cell-sku">246580141</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>65</td>
-          <td>73</td>
-          <td class="cell-total">138</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="С цветами, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-6">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image8.jpg" alt="Разноцветная полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Разноцветная полоска, кор. рукав</td>
-          <td class="cell-sku">246580140</td>
-          <td>0</td>
-          <td>112</td>
-          <td>10</td>
-          <td>0</td>
-          <td>2</td>
-          <td class="cell-total">124</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Разноцветная полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-7">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image9.jpg" alt="Бежевая, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Бежевая, кор. рукав</td>
-          <td class="cell-sku">240478094</td>
-          <td>0</td>
-          <td>246</td>
-          <td>120</td>
-          <td>81</td>
-          <td>1</td>
-          <td class="cell-total">448</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Бежевая, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-8">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image16.jpg" alt="Жёлтая полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Жёлтая полоска, кор. рукав</td>
-          <td class="cell-sku">246580139</td>
-          <td>0</td>
-          <td>3</td>
-          <td>1</td>
-          <td>2</td>
-          <td>3</td>
-          <td class="cell-total">9</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Жёлтая полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-9">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image10.jpg" alt="Серая полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Серая полоска, кор. рукав</td>
-          <td class="cell-sku">223913572</td>
-          <td>97</td>
-          <td>82</td>
-          <td>21</td>
-          <td>79</td>
-          <td>10</td>
-          <td class="cell-total">289</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Серая полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-10">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image11.jpg" alt="Синяя полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Синяя полоска, кор. рукав</td>
-          <td class="cell-sku">223913573, 1288097354</td>
-          <td>300</td>
-          <td>232</td>
-          <td>141</td>
-          <td>165</td>
-          <td>24</td>
-          <td class="cell-total">862</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Синяя полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-11">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image12.jpg" alt="Тиффани, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Тиффани, кор. рукав</td>
-          <td class="cell-sku">246580142</td>
-          <td>0</td>
-          <td>78</td>
-          <td>40</td>
-          <td>39</td>
-          <td>0</td>
-          <td class="cell-total">157</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Тиффани, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-12">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image13.jpg" alt="Белая, длинный рукав" loading="lazy"></td>
-          <td class="cell-name">Белая, длинный рукав</td>
-          <td class="cell-sku">240548340</td>
-          <td>204</td>
-          <td>33</td>
-          <td>6</td>
-          <td>7</td>
-          <td>70</td>
-          <td class="cell-total">320</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Белая, длинный рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-13">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image14.jpg" alt="Зелёная, длинный рукав" loading="lazy"></td>
-          <td class="cell-name">Зелёная, длинный рукав</td>
-          <td class="cell-sku">259215392</td>
-          <td>61</td>
-          <td>1</td>
-          <td>1</td>
-          <td>1</td>
-          <td>0</td>
-          <td class="cell-total">64</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зелёная, длинный рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-14">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image20.jpg" alt="Зип-худи зелёная" loading="lazy"></td>
-          <td class="cell-name">Зип-худи зелёная</td>
-          <td class="cell-sku">648344782</td>
-          <td>0</td>
-          <td>21</td>
-          <td>21</td>
-          <td>21</td>
-          <td>0</td>
-          <td class="cell-total">63</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зип-худи зелёная" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="neupakovannye-15">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image21.jpg" alt="Зип-худи коричневая" loading="lazy"></td>
-          <td class="cell-name">Зип-худи коричневая</td>
-          <td class="cell-sku">648207994</td>
-          <td>0</td>
-          <td>5</td>
-          <td>2</td>
-          <td>5</td>
-          <td>0</td>
-          <td class="cell-total">12</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зип-худи коричневая" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        </tbody>
+        <tbody id="tbody-neupakovannye" data-slug="neupakovannye"></tbody>
       <tfoot><tr class="total-row"><td colspan="11" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
       </table>
       </div>
     </section>
     <section class="tab-panel active" id="tab-obshee">
-      <div class="section-total">Всего единиц: 7414</div>
+      <div class="section-total">Загрузка данных…</div>
       <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
       <div class="table-wrap">
       <table class="stock-table">
@@ -566,260 +131,7 @@
             <th class="cell-sum">Сумма</th>
           </tr>
         </thead>
-        <tbody id="tbody-obshee" data-slug="obshee">
-        <tr data-id="obshee-0">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image1.jpg" alt="Голубая полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Голубая полоска, кор. рукав</td>
-          <td class="cell-sku">374082605, 1290477757</td>
-          <td>190</td>
-          <td>171</td>
-          <td>95</td>
-          <td>99</td>
-          <td>44</td>
-          <td class="cell-total">599</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Голубая полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-1">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image2.jpg" alt="Сине-бело-коричневая, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Сине-бело-коричневая, кор. рукав</td>
-          <td class="cell-sku">409952307</td>
-          <td>121</td>
-          <td>65</td>
-          <td>36</td>
-          <td>45</td>
-          <td>25</td>
-          <td class="cell-total">292</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Сине-бело-коричневая, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-2">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image3.jpg" alt="Коричневая полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Коричневая полоска, кор. рукав</td>
-          <td class="cell-sku">246580138</td>
-          <td>0</td>
-          <td>85</td>
-          <td>55</td>
-          <td>18</td>
-          <td>30</td>
-          <td class="cell-total">188</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Коричневая полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-3">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image4.jpg" alt="С цветами, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">С цветами, кор. рукав</td>
-          <td class="cell-sku">246580141</td>
-          <td>0</td>
-          <td>30</td>
-          <td>30</td>
-          <td>95</td>
-          <td>103</td>
-          <td class="cell-total">258</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="С цветами, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-4">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image5.jpg" alt="Бело-голубая, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Бело-голубая, кор. рукав</td>
-          <td class="cell-sku">240478091</td>
-          <td>0</td>
-          <td>219</td>
-          <td>223</td>
-          <td>171</td>
-          <td>57</td>
-          <td class="cell-total">670</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Бело-голубая, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-5">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image6.jpg" alt="Белая вышивка, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Белая вышивка, кор. рукав</td>
-          <td class="cell-sku">240445526</td>
-          <td>81</td>
-          <td>74</td>
-          <td>7</td>
-          <td>1</td>
-          <td>0</td>
-          <td class="cell-total">163</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Белая вышивка, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-6">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image7.jpg" alt="Зелёная полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Зелёная полоска, кор. рукав</td>
-          <td class="cell-sku">223913571, 1245447354</td>
-          <td>347</td>
-          <td>679</td>
-          <td>249</td>
-          <td>49</td>
-          <td>32</td>
-          <td class="cell-total">1356</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зелёная полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-7">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image8.jpg" alt="Разноцветная полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Разноцветная полоска, кор. рукав</td>
-          <td class="cell-sku">246580140</td>
-          <td>0</td>
-          <td>200</td>
-          <td>45</td>
-          <td>0</td>
-          <td>5</td>
-          <td class="cell-total">250</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Разноцветная полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-8">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image9.jpg" alt="Бежевая, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Бежевая, кор. рукав</td>
-          <td class="cell-sku">240478094</td>
-          <td>0</td>
-          <td>286</td>
-          <td>160</td>
-          <td>121</td>
-          <td>14</td>
-          <td class="cell-total">581</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Бежевая, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-9">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image10.jpg" alt="Серая полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Серая полоска, кор. рукав</td>
-          <td class="cell-sku">223913572</td>
-          <td>97</td>
-          <td>103</td>
-          <td>41</td>
-          <td>79</td>
-          <td>10</td>
-          <td class="cell-total">330</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Серая полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-10">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image11.jpg" alt="Синяя полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Синяя полоска, кор. рукав</td>
-          <td class="cell-sku">223913573, 1288097354</td>
-          <td>350</td>
-          <td>332</td>
-          <td>261</td>
-          <td>293</td>
-          <td>134</td>
-          <td class="cell-total">1370</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Синяя полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-11">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image12.jpg" alt="Тиффани, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Тиффани, кор. рукав</td>
-          <td class="cell-sku">246580142</td>
-          <td>0</td>
-          <td>108</td>
-          <td>70</td>
-          <td>69</td>
-          <td>30</td>
-          <td class="cell-total">277</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Тиффани, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-12">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image13.jpg" alt="Белая, длинный рукав" loading="lazy"></td>
-          <td class="cell-name">Белая, длинный рукав</td>
-          <td class="cell-sku">240548340</td>
-          <td>304</td>
-          <td>88</td>
-          <td>94</td>
-          <td>10</td>
-          <td>292</td>
-          <td class="cell-total">788</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Белая, длинный рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-13">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image14.jpg" alt="Зелёная, длинный рукав" loading="lazy"></td>
-          <td class="cell-name">Зелёная, длинный рукав</td>
-          <td class="cell-sku">259215392</td>
-          <td>121</td>
-          <td>1</td>
-          <td>1</td>
-          <td>31</td>
-          <td>0</td>
-          <td class="cell-total">154</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зелёная, длинный рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-14">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image15.jpg" alt="Чёрная, длинный рукав" loading="lazy"></td>
-          <td class="cell-name">Чёрная, длинный рукав</td>
-          <td class="cell-sku">255211396</td>
-          <td>0</td>
-          <td>14</td>
-          <td>2</td>
-          <td>6</td>
-          <td>32</td>
-          <td class="cell-total">54</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Чёрная, длинный рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-15">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image16.jpg" alt="Жёлтая полоска, кор. рукав" loading="lazy"></td>
-          <td class="cell-name">Жёлтая полоска, кор. рукав</td>
-          <td class="cell-sku">246580139</td>
-          <td>0</td>
-          <td>3</td>
-          <td>1</td>
-          <td>2</td>
-          <td>3</td>
-          <td class="cell-total">9</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Жёлтая полоска, кор. рукав" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-16">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image20.jpg" alt="Зип-худи зелёная" loading="lazy"></td>
-          <td class="cell-name">Зип-худи зелёная</td>
-          <td class="cell-sku">648344782</td>
-          <td>0</td>
-          <td>21</td>
-          <td>21</td>
-          <td>21</td>
-          <td>0</td>
-          <td class="cell-total">63</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зип-худи зелёная" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="obshee-17">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image21.jpg" alt="Зип-худи коричневая" loading="lazy"></td>
-          <td class="cell-name">Зип-худи коричневая</td>
-          <td class="cell-sku">648207994</td>
-          <td>0</td>
-          <td>5</td>
-          <td>2</td>
-          <td>5</td>
-          <td>0</td>
-          <td class="cell-total">12</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зип-худи коричневая" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        </tbody>
+        <tbody id="tbody-obshee" data-slug="obshee"></tbody>
       <tfoot><tr class="total-row"><td colspan="11" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
       </table>
       </div>
@@ -1014,6 +326,26 @@
         </thead>
         <tbody id="tbody-wb-stock" data-slug="wb-stock"></tbody>
       <tfoot><tr class="total-row"><td colspan="10" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
+      </table>
+      </div>
+    </section>
+    <section class="tab-panel" id="tab-journal">
+      <div class="hint">История автоматических списаний: ФБС — когда поставка переходит в статус «в доставке»; ФБО — когда в приёмке на складе ВБ появляется/растёт колонка «Принято». Обновляется само каждые 5 минут.</div>
+      <div class="table-wrap">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th>Дата и время</th>
+            <th>Источник</th>
+            <th class="cell-name">Товар</th>
+            <th>Размер</th>
+            <th>Списано, шт.</th>
+            <th>Из «Упакованные»</th>
+            <th>Из «Неупакованные»</th>
+            <th class="cell-name">Детали</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-journal"></tbody>
       </table>
       </div>
     </section>
@@ -1214,6 +546,167 @@ document.addEventListener('input', function(e) {
 });
 
 loadCosts();
+
+// Остатки склада (Упакованные/Неупакованные/Общее) — теперь хранятся не в
+// статичном HTML, а на бэкенде (ключи "stock_packed"/"stock_unpacked"), чтобы
+// их можно было списывать автоматически при отгрузке (ФБС/ФБО). "Общее"
+// нигде не хранится отдельно — всегда считается как сумма первых двух, чтобы
+// три вкладки не могли разойтись между собой.
+//
+// Фото/название/артикул по каждому товару — это неизменные данные о товаре,
+// они остаются здесь, в коде страницы (а не в БД), а цифры по размерам
+// подтягиваются с сервера.
+var OUR_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
+var PRODUCT_CATALOG = [
+  { name: "Голубая полоска, кор. рукав", photo: "image1.jpg", skus: "374082605, 1290477757" },
+  { name: "Сине-бело-коричневая, кор. рукав", photo: "image2.jpg", skus: "409952307" },
+  { name: "Коричневая полоска, кор. рукав", photo: "image3.jpg", skus: "246580138" },
+  { name: "С цветами, кор. рукав", photo: "image4.jpg", skus: "246580141" },
+  { name: "Бело-голубая, кор. рукав", photo: "image5.jpg", skus: "240478091" },
+  { name: "Белая вышивка, кор. рукав", photo: "image6.jpg", skus: "240445526" },
+  { name: "Зелёная полоска, кор. рукав", photo: "image7.jpg", skus: "223913571, 1245447354" },
+  { name: "Разноцветная полоска, кор. рукав", photo: "image8.jpg", skus: "246580140" },
+  { name: "Бежевая, кор. рукав", photo: "image9.jpg", skus: "240478094" },
+  { name: "Серая полоска, кор. рукав", photo: "image10.jpg", skus: "223913572" },
+  { name: "Синяя полоска, кор. рукав", photo: "image11.jpg", skus: "223913573, 1288097354" },
+  { name: "Тиффани, кор. рукав", photo: "image12.jpg", skus: "246580142" },
+  { name: "Белая, длинный рукав", photo: "image13.jpg", skus: "240548340" },
+  { name: "Зелёная, длинный рукав", photo: "image14.jpg", skus: "259215392" },
+  { name: "Чёрная, длинный рукав", photo: "image15.jpg", skus: "255211396" },
+  { name: "Жёлтая полоска, кор. рукав", photo: "image16.jpg", skus: "246580139" },
+  { name: "Зип-худи зелёная", photo: "image20.jpg", skus: "648344782" },
+  { name: "Зип-худи коричневая", photo: "image21.jpg", skus: "648207994" }
+];
+
+function emptySizes() { return { S: 0, M: 0, L: 0, XL: 0, XXL: 0 }; }
+
+function sumSizes(a, b) {
+  var out = {};
+  OUR_SIZES.forEach(function (k) { out[k] = (Number(a[k]) || 0) + (Number(b[k]) || 0); });
+  return out;
+}
+
+function applyCustomOrderFlat(items, slug) {
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem('stock-order-' + slug) || 'null'); } catch (e) { saved = null; }
+  if (!saved || !saved.length) return items;
+  var pos = {};
+  saved.forEach(function (id, i) { pos[id] = i; });
+  var known = [];
+  var unknown = [];
+  items.forEach(function (item) {
+    var id = slug + '-' + item.idx;
+    if (pos.hasOwnProperty(id)) known.push(item); else unknown.push(item);
+  });
+  known.sort(function (a, b) { return pos[slug + '-' + a.idx] - pos[slug + '-' + b.idx]; });
+  return known.concat(unknown);
+}
+
+function renderSizeTable(slug, sizesMap) {
+  var tbody = document.getElementById('tbody-' + slug);
+  if (!tbody) return;
+
+  var items = PRODUCT_CATALOG.map(function (p, idx) {
+    var sizes = sizesMap[p.name] || emptySizes();
+    var total = OUR_SIZES.reduce(function (s, k) { return s + (Number(sizes[k]) || 0); }, 0);
+    return { idx: idx, name: p.name, photo: p.photo, skus: p.skus, sizes: sizes, total: total };
+  }).filter(function (it) { return it.total > 0; });
+
+  items.sort(function (a, b) { return b.total - a.total; });
+  items = applyCustomOrderFlat(items, slug);
+
+  tbody.innerHTML = '';
+  items.forEach(function (item) {
+    var tr = document.createElement('tr');
+    tr.dataset.id = slug + '-' + item.idx;
+    var photoHtml = item.photo
+      ? '<img src="' + item.photo + '" alt="' + escapeAttr(item.name) + '" loading="lazy">'
+      : '<div class="noimg">нет фото</div>';
+    var sizeCells = OUR_SIZES.map(function (k) { return '<td>' + (Number(item.sizes[k]) || 0) + '</td>'; }).join('');
+    tr.innerHTML =
+      '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
+      '<td class="cell-photo">' + photoHtml + '</td>' +
+      '<td class="cell-name">' + item.name + '</td>' +
+      '<td class="cell-sku">' + (item.skus || '—') + '</td>' +
+      sizeCells +
+      '<td class="cell-total">' + item.total + '</td>' +
+      '<td class="cell-cost"><input type="number" class="cost-input" data-name="' + escapeAttr(item.name) + '" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>' +
+      '<td class="cell-sum">—</td>';
+    tbody.appendChild(tr);
+  });
+
+  var totalUnits = items.reduce(function (s, it) { return s + it.total; }, 0);
+  var totalEl = document.querySelector('#tab-' + slug + ' .section-total');
+  if (totalEl) totalEl.textContent = 'Всего единиц: ' + totalUnits;
+}
+
+function loadStockTables() {
+  return Promise.all([
+    fetch(API_BASE + '/api/state/stock_packed').then(function (r) { return r.json(); }),
+    fetch(API_BASE + '/api/state/stock_unpacked').then(function (r) { return r.json(); })
+  ]).then(function (results) {
+    var packed = (results[0] && results[0].value) || {};
+    var unpacked = (results[1] && results[1].value) || {};
+    var obshee = {};
+    PRODUCT_CATALOG.forEach(function (p) {
+      obshee[p.name] = sumSizes(packed[p.name] || emptySizes(), unpacked[p.name] || emptySizes());
+    });
+    renderSizeTable('upakovannye', packed);
+    renderSizeTable('neupakovannye', unpacked);
+    renderSizeTable('obshee', obshee);
+    applyCostsToInputs();
+  }).catch(function (e) {
+    console.error('Не удалось загрузить остатки склада', e);
+  });
+}
+
+// Журнал автоматических списаний (ФБС/ФБО) — просто хронологический список,
+// без ручной сортировки, поэтому у tbody нет data-slug (перетаскивание и
+// порядок для этой вкладки не нужны).
+function renderJournal(entries) {
+  var tbody = document.getElementById('tbody-journal');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  if (!entries.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="color:#999;">Списаний пока не было</td></tr>';
+    return;
+  }
+  entries.forEach(function (e) {
+    var tr = document.createElement('tr');
+    var when = e.ts ? new Date(e.ts).toLocaleString('ru-RU') : '—';
+    var src = e.source === 'fbs' ? 'ФБС (в доставке)' : e.source === 'fbo' ? 'ФБО (принято)' : (e.source || '—');
+    var productText = e.product || 'не распознано';
+    var product = e.unresolved ? '<span style="color:#b00020">' + escapeAttr(productText) + '</span>' : escapeAttr(productText);
+    var size = e.size || '—';
+    var qty = e.qty != null ? e.qty : '—';
+    var fromPacked = e.fromPacked != null ? e.fromPacked : '—';
+    var fromUnpacked = e.fromUnpacked != null ? e.fromUnpacked : '—';
+    var details = [];
+    if (e.supplyId) details.push('поставка ' + e.supplyId);
+    if (e.orderId) details.push('заказ ' + e.orderId);
+    if (e.barcode) details.push('штрихкод ' + e.barcode);
+    if (e.nmId) details.push('nmId ' + e.nmId);
+    if (e.insufficient) details.push('<span style="color:#b00020">не хватило ' + e.shortfall + ' шт.</span>');
+    if (e.note) details.push(escapeAttr(e.note));
+    tr.innerHTML =
+      '<td>' + when + '</td>' +
+      '<td>' + src + '</td>' +
+      '<td class="cell-name">' + product + '</td>' +
+      '<td>' + size + '</td>' +
+      '<td>' + qty + '</td>' +
+      '<td>' + fromPacked + '</td>' +
+      '<td>' + fromUnpacked + '</td>' +
+      '<td class="cell-name" style="font-size:12px; color:#666;">' + details.join(' · ') + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function loadJournal() {
+  fetch(API_BASE + '/api/deductions')
+    .then(function (r) { return r.json(); })
+    .then(function (data) { renderJournal((data && data.entries) || []); })
+    .catch(function (e) { console.error('Не удалось загрузить журнал списаний', e); });
+}
 
 // Остатки на складах ВБ (Wildberries Seller API, через backend-кэш).
 // Backend сам обновляет кэш каждые ~20 минут; здесь мы просто читаем последний
@@ -1444,8 +937,15 @@ function loadWbStock() {
     });
 }
 
-loadWbStock();
-setInterval(loadWbStock, 5 * 60 * 1000);
+// Порядок важен: "Остатки на ВБ" сопоставляет товары по данным из вкладки
+// "Общее" (buildSkuInfoMap читает #tbody-obshee), поэтому сначала ждём, пока
+// заполнятся Упакованные/Неупакованные/Общее, и только потом считаем ВБ.
+function refreshEverything() {
+  loadStockTables().then(function () { loadWbStock(); });
+  loadJournal();
+}
+refreshEverything();
+setInterval(refreshEverything, 5 * 60 * 1000);
 </script>
 </body>
 </html>
