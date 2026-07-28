@@ -220,8 +220,9 @@
       </div>
     </section>
     <section class="tab-panel" id="tab-brak">
-      <div class="section-total">Всего единиц: 385</div>
+      <div class="section-total">Загрузка данных…</div>
       <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
+      <div class="hint">Зелёная и синяя рубашка отсюда тоже списываются автоматически — но только когда «Упакованные» и «Неупакованные» по этому размеру уже пусты (см. вкладку «Журнал списаний»)</div>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
@@ -240,64 +241,7 @@
             <th class="cell-sum">Сумма</th>
           </tr>
         </thead>
-        <tbody id="tbody-brak" data-slug="brak">
-        <tr data-id="brak-0">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image7.jpg" alt="Зелёная, кор. рукав (брак, волна)" loading="lazy"></td>
-          <td class="cell-name">Зелёная, кор. рукав (брак, волна)</td>
-          <td class="cell-sku">223913571</td>
-          <td>0</td>
-          <td>60</td>
-          <td>0</td>
-          <td>60</td>
-          <td>0</td>
-          <td class="cell-total">120</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зелёная, кор. рукав (брак, волна)" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="brak-1">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image7.jpg" alt="Зелёная, кор. рукав (брак, волна)" loading="lazy"></td>
-          <td class="cell-name">Зелёная, кор. рукав (брак, волна)</td>
-          <td class="cell-sku">223913571</td>
-          <td>0</td>
-          <td>39</td>
-          <td>4</td>
-          <td>0</td>
-          <td>159</td>
-          <td class="cell-total">202</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Зелёная, кор. рукав (брак, волна)" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="brak-2">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image11.jpg" alt="Синяя, кор. рукав (брак, волна)" loading="lazy"></td>
-          <td class="cell-name">Синяя, кор. рукав (брак, волна)</td>
-          <td class="cell-sku">223913573</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>9</td>
-          <td class="cell-total">9</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Синяя, кор. рукав (брак, волна)" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="brak-3">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><img src="image10.jpg" alt="Серая, кор. рукав (брак, волна)" loading="lazy"></td>
-          <td class="cell-name">Серая, кор. рукав (брак, волна)</td>
-          <td class="cell-sku">223913572</td>
-          <td>10</td>
-          <td>0</td>
-          <td>25</td>
-          <td>0</td>
-          <td>19</td>
-          <td class="cell-total">54</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Серая, кор. рукав (брак, волна)" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        </tbody>
+        <tbody id="tbody-brak" data-slug="brak"></tbody>
       <tfoot><tr class="total-row"><td colspan="11" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
       </table>
       </div>
@@ -342,6 +286,7 @@
             <th>Списано, шт.</th>
             <th>Из «Упакованные»</th>
             <th>Из «Неупакованные»</th>
+            <th>Из «Брак»</th>
             <th class="cell-name">Детали</th>
           </tr>
         </thead>
@@ -578,6 +523,18 @@ var PRODUCT_CATALOG = [
   { name: "Зип-худи коричневая", photo: "image21.jpg", skus: "648207994" }
 ];
 
+// Брак (волна) — тоже теперь на бэкенде (ключ "stock_brak"), т.к. зелёная и
+// синяя рубашка списываются из него автоматически, когда "Упакованные" и
+// "Неупакованные" по нужному размеру уже пусты (см. BRAK_FALLBACK на сервере).
+// В исходных данных у "Зелёная, кор. рукав (брак, волна)" было две отдельные
+// строки (видимо, две разные партии) — объединили в один общий пул на размер,
+// как и попросили.
+var BRAK_CATALOG = [
+  { name: "Зелёная, кор. рукав (брак, волна)", photo: "image7.jpg", skus: "223913571" },
+  { name: "Синяя, кор. рукав (брак, волна)", photo: "image11.jpg", skus: "223913573" },
+  { name: "Серая, кор. рукав (брак, волна)", photo: "image10.jpg", skus: "223913572" }
+];
+
 function emptySizes() { return { S: 0, M: 0, L: 0, XL: 0, XXL: 0 }; }
 
 function sumSizes(a, b) {
@@ -602,11 +559,11 @@ function applyCustomOrderFlat(items, slug) {
   return known.concat(unknown);
 }
 
-function renderSizeTable(slug, sizesMap) {
+function renderSizeTable(slug, sizesMap, catalog) {
   var tbody = document.getElementById('tbody-' + slug);
   if (!tbody) return;
 
-  var items = PRODUCT_CATALOG.map(function (p, idx) {
+  var items = (catalog || PRODUCT_CATALOG).map(function (p, idx) {
     var sizes = sizesMap[p.name] || emptySizes();
     var total = OUR_SIZES.reduce(function (s, k) { return s + (Number(sizes[k]) || 0); }, 0);
     return { idx: idx, name: p.name, photo: p.photo, skus: p.skus, sizes: sizes, total: total };
@@ -643,10 +600,12 @@ function renderSizeTable(slug, sizesMap) {
 function loadStockTables() {
   return Promise.all([
     fetch(API_BASE + '/api/state/stock_packed').then(function (r) { return r.json(); }),
-    fetch(API_BASE + '/api/state/stock_unpacked').then(function (r) { return r.json(); })
+    fetch(API_BASE + '/api/state/stock_unpacked').then(function (r) { return r.json(); }),
+    fetch(API_BASE + '/api/state/stock_brak').then(function (r) { return r.json(); })
   ]).then(function (results) {
     var packed = (results[0] && results[0].value) || {};
     var unpacked = (results[1] && results[1].value) || {};
+    var brak = (results[2] && results[2].value) || {};
     var obshee = {};
     PRODUCT_CATALOG.forEach(function (p) {
       obshee[p.name] = sumSizes(packed[p.name] || emptySizes(), unpacked[p.name] || emptySizes());
@@ -654,6 +613,7 @@ function loadStockTables() {
     renderSizeTable('upakovannye', packed);
     renderSizeTable('neupakovannye', unpacked);
     renderSizeTable('obshee', obshee);
+    renderSizeTable('brak', brak, BRAK_CATALOG);
     applyCostsToInputs();
   }).catch(function (e) {
     console.error('Не удалось загрузить остатки склада', e);
@@ -668,7 +628,7 @@ function renderJournal(entries) {
   if (!tbody) return;
   tbody.innerHTML = '';
   if (!entries.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="color:#999;">Списаний пока не было</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="color:#999;">Списаний пока не было</td></tr>';
     return;
   }
   entries.forEach(function (e) {
@@ -681,11 +641,13 @@ function renderJournal(entries) {
     var qty = e.qty != null ? e.qty : '—';
     var fromPacked = e.fromPacked != null ? e.fromPacked : '—';
     var fromUnpacked = e.fromUnpacked != null ? e.fromUnpacked : '—';
+    var fromBrak = e.fromBrak != null ? e.fromBrak : '—';
     var details = [];
     if (e.supplyId) details.push('поставка ' + e.supplyId);
     if (e.orderId) details.push('заказ ' + e.orderId);
     if (e.barcode) details.push('штрихкод ' + e.barcode);
     if (e.nmId) details.push('nmId ' + e.nmId);
+    if (e.fromBrak) details.push('<span style="color:#b26a00">из брака (волна): ' + e.fromBrak + ' шт.</span>');
     if (e.insufficient) details.push('<span style="color:#b00020">не хватило ' + e.shortfall + ' шт.</span>');
     if (e.note) details.push(escapeAttr(e.note));
     tr.innerHTML =
@@ -696,6 +658,7 @@ function renderJournal(entries) {
       '<td>' + qty + '</td>' +
       '<td>' + fromPacked + '</td>' +
       '<td>' + fromUnpacked + '</td>' +
+      '<td>' + fromBrak + '</td>' +
       '<td class="cell-name" style="font-size:12px; color:#666;">' + details.join(' · ') + '</td>';
     tbody.appendChild(tr);
   });
