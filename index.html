@@ -46,6 +46,20 @@
   .sortable-drag { background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.15); }
   .updated { text-align:center; color:#999; font-size:12px; margin-top:40px; }
   tr.wb-category-row td { background:#eeece5; font-weight:700; text-align:left; color:#1b1b1b; }
+  .wh-btn { border:1px solid #d8d5cd; background:#fff; border-radius:6px; width:24px; height:24px; line-height:1; cursor:pointer; margin-left:6px; font-size:13px; vertical-align:middle; }
+  .wh-btn:hover { background:#eceae3; }
+  .wh-btn.has-disabled { border-color:#b00020; color:#b00020; }
+  .wh-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:center; justify-content:center; }
+  .wh-modal-overlay.open { display:flex; }
+  .wh-modal { background:#fff; border-radius:10px; max-width:480px; width:92%; max-height:80vh; overflow:auto; padding:18px 20px; box-shadow:0 8px 30px rgba(0,0,0,.25); }
+  .wh-modal h3 { margin:0 0 4px; font-size:16px; }
+  .wh-modal .wh-modal-hint { color:#888; font-size:12px; margin-bottom:12px; }
+  .wh-modal table { width:100%; border-collapse:collapse; font-size:13px; }
+  .wh-modal th, .wh-modal td { text-align:left; padding:6px 4px; border-bottom:1px solid #eeece6; }
+  .wh-modal th:last-child, .wh-modal td:last-child { text-align:right; }
+  .wh-modal-close { margin-top:14px; border:1px solid #d8d5cd; background:#f6f5f3; border-radius:8px; padding:8px 16px; cursor:pointer; font-size:13px; float:right; }
+  .wh-modal-close:hover { background:#eceae3; }
+  .wh-row-disabled td { color:#bbb; text-decoration:line-through; }
 </style>
 </head>
 <body>
@@ -296,11 +310,49 @@
     </section>
   <div class="updated">Обновлено вручную · данные подготовлены Claude</div>
 </main>
+<div class="wh-modal-overlay" id="wh-modal-overlay" onclick="if(event.target===this) closeWarehouseModal();">
+  <div class="wh-modal">
+    <h3 id="wh-modal-title">Склады</h3>
+    <div class="wh-modal-hint">Снимите галочку, чтобы исключить склад из подсчёта остатков этого товара (например, если склад сейчас недоступен) — общее количество на вкладке пересчитается сразу.</div>
+    <table>
+      <thead><tr><th></th><th>Склад</th><th>Штук</th></tr></thead>
+      <tbody id="wh-modal-body"></tbody>
+    </table>
+    <button class="wh-modal-close" onclick="closeWarehouseModal()">Закрыть</button>
+  </div>
+</div>
 <script>
 // Общий бэкенд для хранения порядка строк (Railway + Postgres) —
 // порядок теперь одинаковый на всех устройствах, а не только в одном браузере.
 var API_BASE = 'https://wb-ostatki-api-production.up.railway.app';
 var API_KEY = 'nviWkUkRLf4dGAaVxiijir1kq3z8WeoG';
+
+// Склады ВБ, которые пользователь вручную отключил из подсчёта (например,
+// физически сгоревшие/закрытые склады, которые WB ещё не списал у себя).
+// Хранится на сервере (ключ "disabled_warehouses"), общее на все устройства.
+var disabledWarehouses = new Set();
+var disabledWarehousesLoaded = false;
+var lastWbStockData = null;
+var lastWbCardsData = null;
+
+function loadDisabledWarehouses() {
+  return fetch(API_BASE + '/api/state/disabled_warehouses')
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      var ids = (res && res.value) || [];
+      disabledWarehouses = new Set(ids.map(Number));
+      disabledWarehousesLoaded = true;
+    })
+    .catch(function() { disabledWarehousesLoaded = true; });
+}
+
+function saveDisabledWarehouses() {
+  return fetch(API_BASE + '/api/state/disabled_warehouses', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify(Array.from(disabledWarehouses))
+  });
+}
 
 function showTab(slug) {
   document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
@@ -758,14 +810,30 @@ function renderWbStock(stockData, cardsData) {
     errorEl.style.display = 'none';
   }
 
+  // warehousesByNm — разбивка по конкретным складам (для окошка "Склады"),
+  // считаем по ВСЕМ складам независимо от того, отключены они пользователем
+  // или нет — в самом окошке видно и отключённые (зачёркнуты), просто их
+  // штуки не идут в общий подсчёт byNm ниже.
+  var warehousesByNm = {};
   var byNm = {};
   rows.forEach(function(r) {
     var nm = String(r.nmId);
+    var whId = Number(r.warehouseId);
+    if (!warehousesByNm[nm]) warehousesByNm[nm] = {};
+    if (!warehousesByNm[nm][whId]) {
+      warehousesByNm[nm][whId] = { warehouseId: whId, warehouseName: r.warehouseName || ('Склад #' + whId), qty: 0, toClient: 0, fromClient: 0 };
+    }
+    warehousesByNm[nm][whId].qty += Number(r.quantity) || 0;
+    warehousesByNm[nm][whId].toClient += Number(r.inWayToClient) || 0;
+    warehousesByNm[nm][whId].fromClient += Number(r.inWayFromClient) || 0;
+
     if (!byNm[nm]) byNm[nm] = { qty: 0, toClient: 0, fromClient: 0 };
+    if (disabledWarehouses.has(whId)) return; // склад отключён пользователем — не считаем
     byNm[nm].qty += Number(r.quantity) || 0;
     byNm[nm].toClient += Number(r.inWayToClient) || 0;
     byNm[nm].fromClient += Number(r.inWayFromClient) || 0;
   });
+  window.__warehousesByNm = warehousesByNm; // нужно openWarehouseModal-у
 
   // Карточки товаров с самого ВБ (артикул продавца, название, фото) — нужны
   // для строк, которых нет в нашем собственном списке товаров на сайте.
@@ -838,13 +906,16 @@ function renderWbStock(stockData, cardsData) {
     // нашем списке, ключа пока не существует — стоимость будет 0, пока
     // пользователь не впишет её сам прямо в этой таблице.
     var costKey = item.name || item.vendorCode || item.nm;
+    var whMap = (window.__warehousesByNm && window.__warehousesByNm[item.nm]) || {};
+    var whHasDisabled = Object.keys(whMap).some(function(id) { return disabledWarehouses.has(Number(id)); });
+    var whBtn = '<button class="wh-btn' + (whHasDisabled ? ' has-disabled' : '') + '" title="Склады" onclick="openWarehouseModal(\'' + item.nm + '\', ' + escapeAttr(JSON.stringify(item.name || item.vendorCode || item.nm)) + ')">&#127970;</button>';
     tr.innerHTML =
       '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
       '<td class="cell-photo">' + photoHtml + '</td>' +
       '<td class="cell-sku">' + item.nm + '</td>' +
       '<td class="cell-sku">' + item.vendorCode + '</td>' +
       '<td class="cell-name">' + nameHtml + '</td>' +
-      '<td>' + item.qty + '</td>' +
+      '<td>' + item.qty + ' ' + whBtn + '</td>' +
       '<td>' + item.toClient + '</td>' +
       '<td>' + item.fromClient + '</td>' +
       '<td class="cell-total">' + grandTotal + '</td>' +
@@ -887,9 +958,14 @@ function renderWbStock(stockData, cardsData) {
 function loadWbStock() {
   Promise.all([
     fetch(API_BASE + '/api/wb/stock').then(function(r) { return r.json(); }),
-    fetch(API_BASE + '/api/wb/cards').then(function(r) { return r.json(); }).catch(function() { return { cards: [] }; })
+    fetch(API_BASE + '/api/wb/cards').then(function(r) { return r.json(); }).catch(function() { return { cards: [] }; }),
+    loadDisabledWarehouses() // лёгкий запрос, обновляем каждый раз, чтобы синхронизироваться между устройствами
   ])
-    .then(function(results) { renderWbStock(results[0], results[1]); })
+    .then(function(results) {
+      lastWbStockData = results[0];
+      lastWbCardsData = results[1];
+      renderWbStock(lastWbStockData, lastWbCardsData);
+    })
     .catch(function(e) {
       console.error('Не удалось загрузить остатки ВБ', e);
       var errorEl = document.getElementById('wb-stock-error');
@@ -898,6 +974,46 @@ function loadWbStock() {
         errorEl.style.display = 'block';
       }
     });
+}
+
+// Окошко "Склады" — показывает разбивку по складам для конкретного товара
+// (по nmId) с галочками. Снятие галочки отключает склад ГЛОБАЛЬНО (для всех
+// товаров), а не только для этого — так и должно быть, склад либо работает,
+// либо нет, независимо от того, какой товар на нём лежит.
+function openWarehouseModal(nm, title) {
+  var whMap = (window.__warehousesByNm && window.__warehousesByNm[nm]) || {};
+  var list = Object.keys(whMap).map(function(id) { return whMap[id]; });
+  list.sort(function(a, b) { return b.qty - a.qty; });
+  document.getElementById('wh-modal-title').textContent = 'Склады — ' + (title || nm);
+  var body = document.getElementById('wh-modal-body');
+  body.innerHTML = '';
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="3" style="color:#999;">Нет данных по складам для этого товара</td></tr>';
+  }
+  list.forEach(function(w) {
+    var checked = !disabledWarehouses.has(w.warehouseId);
+    var tr = document.createElement('tr');
+    if (!checked) tr.className = 'wh-row-disabled';
+    tr.innerHTML =
+      '<td><input type="checkbox" ' + (checked ? 'checked' : '') + ' data-wh="' + w.warehouseId + '"></td>' +
+      '<td>' + escapeAttr(w.warehouseName) + '</td>' +
+      '<td>' + w.qty + '</td>';
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      var whId = Number(cb.dataset.wh);
+      if (cb.checked) disabledWarehouses.delete(whId); else disabledWarehouses.add(whId);
+      cb.closest('tr').className = cb.checked ? '' : 'wh-row-disabled';
+      saveDisabledWarehouses();
+      if (lastWbStockData) renderWbStock(lastWbStockData, lastWbCardsData); // мгновенный пересчёт итогов
+    });
+  });
+  document.getElementById('wh-modal-overlay').classList.add('open');
+}
+
+function closeWarehouseModal() {
+  document.getElementById('wh-modal-overlay').classList.remove('open');
 }
 
 // Порядок важен: "Остатки на ВБ" сопоставляет товары по данным из вкладки
