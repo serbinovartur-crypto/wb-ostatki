@@ -46,9 +46,9 @@
   .sortable-drag { background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.15); }
   .updated { text-align:center; color:#999; font-size:12px; margin-top:40px; }
   tr.wb-category-row td { background:#eeece5; font-weight:700; text-align:left; color:#1b1b1b; }
-  .wh-btn { border:1px solid #d8d5cd; background:#fff; border-radius:6px; width:24px; height:24px; line-height:1; cursor:pointer; margin-left:6px; font-size:13px; vertical-align:middle; }
-  .wh-btn:hover { background:#eceae3; }
-  .wh-btn.has-disabled { border-color:#b00020; color:#b00020; }
+  .wh-global-btn { border:1px solid #d8d5cd; background:#fff; border-radius:20px; padding:8px 16px; cursor:pointer; margin-bottom:14px; font-size:13px; font-weight:600; display:inline-block; }
+  .wh-global-btn:hover { background:#eceae3; }
+  .wh-global-btn.has-disabled { border-color:#b00020; color:#b00020; }
   .wh-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:center; justify-content:center; }
   .wh-modal-overlay.open { display:flex; }
   .wh-modal { background:#fff; border-radius:10px; max-width:480px; width:92%; max-height:80vh; overflow:auto; padding:18px 20px; box-shadow:0 8px 30px rgba(0,0,0,.25); }
@@ -265,6 +265,7 @@
       <div class="hint" id="wb-stock-updated">Данные ещё не получены</div>
       <div class="hint" id="wb-stock-error" style="display:none; color:#b00020;"></div>
       <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк внутри категории — порядок сохранится на всех устройствах</div>
+      <button id="wh-global-btn" class="wh-global-btn" onclick="openGlobalWarehouseModal()">&#127970; Склады — включить/выключить</button>
       <div class="table-wrap">
       <table class="stock-table">
         <thead>
@@ -906,16 +907,13 @@ function renderWbStock(stockData, cardsData) {
     // нашем списке, ключа пока не существует — стоимость будет 0, пока
     // пользователь не впишет её сам прямо в этой таблице.
     var costKey = item.name || item.vendorCode || item.nm;
-    var whMap = (window.__warehousesByNm && window.__warehousesByNm[item.nm]) || {};
-    var whHasDisabled = Object.keys(whMap).some(function(id) { return disabledWarehouses.has(Number(id)); });
-    var whBtn = '<button class="wh-btn' + (whHasDisabled ? ' has-disabled' : '') + '" title="Склады" onclick="openWarehouseModal(\'' + item.nm + '\', ' + escapeAttr(JSON.stringify(item.name || item.vendorCode || item.nm)) + ')">&#127970;</button>';
     tr.innerHTML =
       '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
       '<td class="cell-photo">' + photoHtml + '</td>' +
       '<td class="cell-sku">' + item.nm + '</td>' +
       '<td class="cell-sku">' + item.vendorCode + '</td>' +
       '<td class="cell-name">' + nameHtml + '</td>' +
-      '<td>' + item.qty + ' ' + whBtn + '</td>' +
+      '<td>' + item.qty + '</td>' +
       '<td>' + item.toClient + '</td>' +
       '<td>' + item.fromClient + '</td>' +
       '<td class="cell-total">' + grandTotal + '</td>' +
@@ -953,6 +951,12 @@ function renderWbStock(stockData, cardsData) {
   // Подставляем уже сохранённые значения себестоимости в новые поля и
   // пересчитываем суммы (в том числе итог по этой вкладке).
   applyCostsToInputs();
+
+  var globalBtn = document.getElementById('wh-global-btn');
+  if (globalBtn) {
+    globalBtn.classList.toggle('has-disabled', disabledWarehouses.size > 0);
+    globalBtn.textContent = '🏬 Склады — включить/выключить' + (disabledWarehouses.size ? ' (выключено: ' + disabledWarehouses.size + ')' : '');
+  }
 }
 
 function loadWbStock() {
@@ -976,19 +980,36 @@ function loadWbStock() {
     });
 }
 
-// Окошко "Склады" — показывает разбивку по складам для конкретного товара
-// (по nmId) с галочками. Снятие галочки отключает склад ГЛОБАЛЬНО (для всех
-// товаров), а не только для этого — так и должно быть, склад либо работает,
-// либо нет, независимо от того, какой товар на нём лежит.
-function openWarehouseModal(nm, title) {
-  var whMap = (window.__warehousesByNm && window.__warehousesByNm[nm]) || {};
-  var list = Object.keys(whMap).map(function(id) { return whMap[id]; });
+// Окошко "Склады" — один общий список складов ("да и товары могут быть
+// разные, а список складов один"), а не отдельно для каждого товара.
+// Считаем суммарный остаток по каждому складу по ВСЕМ товарам сразу и
+// показываем только те склады, где суммарно есть хоть 1 штука — чтобы не
+// засорять список складами, где нашего товара вообще нет. Снятие галочки
+// отключает склад глобально — для всех товаров сразу.
+function buildGlobalWarehouseList() {
+  var whByNm = window.__warehousesByNm || {};
+  var totals = {};
+  Object.keys(whByNm).forEach(function(nm) {
+    var whMap = whByNm[nm];
+    Object.keys(whMap).forEach(function(id) {
+      var w = whMap[id];
+      if (!totals[id]) totals[id] = { warehouseId: w.warehouseId, warehouseName: w.warehouseName, qty: 0 };
+      totals[id].qty += w.qty;
+    });
+  });
+  var list = Object.keys(totals).map(function(id) { return totals[id]; });
+  list = list.filter(function(w) { return w.qty > 0; }); // склады без нашего товара не показываем
   list.sort(function(a, b) { return b.qty - a.qty; });
-  document.getElementById('wh-modal-title').textContent = 'Склады — ' + (title || nm);
+  return list;
+}
+
+function openGlobalWarehouseModal() {
+  var list = buildGlobalWarehouseList();
+  document.getElementById('wh-modal-title').textContent = 'Склады (все товары)';
   var body = document.getElementById('wh-modal-body');
   body.innerHTML = '';
   if (!list.length) {
-    body.innerHTML = '<tr><td colspan="3" style="color:#999;">Нет данных по складам для этого товара</td></tr>';
+    body.innerHTML = '<tr><td colspan="3" style="color:#999;">Нет данных по складам</td></tr>';
   }
   list.forEach(function(w) {
     var checked = !disabledWarehouses.has(w.warehouseId);
@@ -1006,7 +1027,7 @@ function openWarehouseModal(nm, title) {
       if (cb.checked) disabledWarehouses.delete(whId); else disabledWarehouses.add(whId);
       cb.closest('tr').className = cb.checked ? '' : 'wh-row-disabled';
       saveDisabledWarehouses();
-      if (lastWbStockData) renderWbStock(lastWbStockData, lastWbCardsData); // мгновенный пересчёт итогов
+      if (lastWbStockData) renderWbStock(lastWbStockData, lastWbCardsData); // мгновенный пересчёт итогов по всем товарам
     });
   });
   document.getElementById('wh-modal-overlay').classList.add('open');
