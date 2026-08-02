@@ -60,6 +60,24 @@
   .wh-modal-close { margin-top:14px; border:1px solid #d8d5cd; background:#f6f5f3; border-radius:8px; padding:8px 16px; cursor:pointer; font-size:13px; float:right; }
   .wh-modal-close:hover { background:#eceae3; }
   .wh-row-disabled td { color:#bbb; text-decoration:line-through; }
+  .add-competitor-form { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+  .add-competitor-form input { border:1px solid #d8d5cd; border-radius:8px; padding:9px 12px; font-size:13px; font-family:inherit; }
+  .add-competitor-form input[name="url"] { flex:1; min-width:280px; }
+  .add-competitor-form input[name="name"] { width:220px; }
+  .competitor-card { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:16px; margin-bottom:20px; }
+  .competitor-card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .competitor-name { font-weight:700; font-size:15px; }
+  .competitor-meta { color:#888; font-size:12px; margin-top:2px; }
+  .competitor-meta a { color:#888; }
+  .competitor-actions { display:flex; gap:8px; flex-wrap:wrap; }
+  .competitor-actions button { border:1px solid #d8d5cd; background:#f6f5f3; border-radius:20px; padding:7px 14px; font-size:12px; font-weight:600; cursor:pointer; }
+  .competitor-actions button:hover { background:#eceae3; }
+  .pos-cell { font-weight:600; }
+  .pos-cell.up { background:#e6f7e9; color:#1a7a34; }
+  .pos-cell.down { background:#fdecea; color:#b00020; }
+  .pos-cell.new { background:#eef2ff; color:#3949ab; }
+  .pos-cell.gone { background:#fdecea; color:#b00020; text-decoration:line-through; font-weight:400; }
+  .pos-cell.same { color:#555; }
 </style>
 </head>
 <body>
@@ -68,7 +86,7 @@
   <p>Актуальные остатки на складе</p>
 </header>
 <div class="tabs">
-  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="svitshoty" onclick="showTab('svitshoty')">Свитшоты</button><button class="tab-btn" data-tab="brak" onclick="showTab('brak')">Брак (волна)</button><button class="tab-btn" data-tab="wb-stock" onclick="showTab('wb-stock')">Остатки на ВБ</button><button class="tab-btn" data-tab="journal" onclick="showTab('journal')">Журнал списаний</button>
+  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="svitshoty" onclick="showTab('svitshoty')">Свитшоты</button><button class="tab-btn" data-tab="brak" onclick="showTab('brak')">Брак (волна)</button><button class="tab-btn" data-tab="wb-stock" onclick="showTab('wb-stock')">Остатки на ВБ</button><button class="tab-btn" data-tab="journal" onclick="showTab('journal')">Журнал списаний</button><button class="tab-btn" data-tab="competitors" onclick="showTab('competitors')">Конкуренты</button>
 </div>
 <main>
     <section class="tab-panel" id="tab-upakovannye">
@@ -310,6 +328,16 @@
       </div>
     </section>
   <div class="updated">Обновлено вручную · данные подготовлены Claude</div>
+    <section class="tab-panel" id="tab-competitors">
+      <div class="hint">Отслеживаем, сколько ваших карточек показывается в блоке «Смотрите также» («Похожие товары») у конкурента и на каких позициях — по дням. Зелёным — позиция улучшилась (карточка поднялась выше), красным — ухудшилась или карточка пропала из блока.</div>
+      <form class="add-competitor-form" onsubmit="return addCompetitor(event)">
+        <input type="text" name="url" placeholder="Ссылка на карточку конкурента (wildberries.ru/catalog/.../detail.aspx)" required>
+        <input type="text" name="name" placeholder="Название (необязательно)">
+        <button type="submit" class="wh-global-btn">+ Добавить конкурента</button>
+      </form>
+      <div id="competitors-error" class="hint" style="display:none;color:#b00020;"></div>
+      <div id="competitors-list"><div class="hint">Загрузка…</div></div>
+    </section>
 </main>
 <div class="wh-modal-overlay" id="wh-modal-overlay" onclick="if(event.target===this) closeWarehouseModal();">
   <div class="wh-modal">
@@ -1040,9 +1068,191 @@ function closeWarehouseModal() {
 // Порядок важен: "Остатки на ВБ" сопоставляет товары по данным из вкладки
 // "Общее" (buildSkuInfoMap читает #tbody-obshee), поэтому сначала ждём, пока
 // заполнятся Упакованные/Неупакованные/Общее, и только потом считаем ВБ.
+
+// ---------------------------------------------------------------------------
+// Вкладка "Конкуренты": позиции наших карточек в блоке "Смотрите также"
+// у конкурентов, по дням. Сами данные собирает Claude (обычная навигация в
+// браузере), сюда только приходят уже готовые числа через API.
+var COMPETITORS_MAX_HISTORY_DAYS = 14;
+
+function loadCompetitors() {
+  var listEl = document.getElementById('competitors-list');
+  if (!listEl) return;
+  fetch(API_BASE + '/api/competitors')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var competitors = (data && data.competitors) || [];
+      if (!competitors.length) {
+        listEl.innerHTML = '<div class="hint">Пока нет ни одного конкурента — добавьте ссылку на карточку выше.</div>';
+        return;
+      }
+      return Promise.all(competitors.map(function (c) {
+        return fetch(API_BASE + '/api/competitors/' + c.id + '/history')
+          .then(function (r) { return r.json(); })
+          .then(function (history) { return { competitor: c, history: history }; })
+          .catch(function () { return { competitor: c, history: { history: {} } }; });
+      })).then(function (results) {
+        listEl.innerHTML = '';
+        results.forEach(function (r) {
+          listEl.appendChild(renderCompetitorCard(r.competitor, r.history));
+        });
+      });
+    })
+    .catch(function (e) {
+      console.error('Не удалось загрузить конкурентов', e);
+      listEl.innerHTML = '<div class="hint" style="color:#b00020;">Не удалось связаться с сервером</div>';
+    });
+}
+
+function renderCompetitorCard(competitor, historyData) {
+  var wrap = document.createElement('div');
+  wrap.className = 'competitor-card';
+
+  var history = (historyData && historyData.history) || {};
+  var days = Object.keys(history).sort();
+  var recentDays = days.slice(-COMPETITORS_MAX_HISTORY_DAYS);
+
+  var productsByNm = {};
+  recentDays.forEach(function (day) {
+    (history[day].matches || []).forEach(function (m) {
+      productsByNm[m.nmID] = { name: m.myName, vendorCode: m.myVendorCode };
+    });
+  });
+  var nmIds = Object.keys(productsByNm);
+
+  var lastDay = days.length ? days[days.length - 1] : null;
+  var lastScan = lastDay ? history[lastDay] : null;
+
+  var header = document.createElement('div');
+  header.className = 'competitor-card-header';
+  header.innerHTML =
+    '<div>' +
+      '<div class="competitor-name">' + escapeAttr(competitor.name) + '</div>' +
+      '<div class="competitor-meta"><a href="' + escapeAttr(competitor.url) + '" target="_blank" rel="noopener">артикул ' + competitor.nmID + '</a>' +
+      (lastScan
+        ? ' · проверено ' + lastDay + ' (' + new Date(lastScan.scannedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + '), карточек в блоке: ' + lastScan.totalSeen
+        : ' · ещё не проверялось') +
+      '</div>' +
+    '</div>' +
+    '<div class="competitor-actions">' +
+      '<button data-action="refresh" type="button">Обновить</button>' +
+      '<button data-action="delete" type="button" style="border-color:#b00020;color:#b00020;">Удалить</button>' +
+    '</div>';
+
+  header.querySelector('[data-action="refresh"]').addEventListener('click', function () { requestCompetitorRefresh(competitor.id, this); });
+  header.querySelector('[data-action="delete"]').addEventListener('click', function () { deleteCompetitor(competitor.id, competitor.name); });
+
+  wrap.appendChild(header);
+
+  if (!nmIds.length) {
+    var empty = document.createElement('div');
+    empty.className = 'hint';
+    empty.textContent = 'Пока нет данных — ни одна ваша карточка не найдена в «Смотрите также» у этого конкурента, либо проверка ещё не проводилась.';
+    wrap.appendChild(empty);
+    return wrap;
+  }
+
+  var tableWrap = document.createElement('div');
+  tableWrap.className = 'table-wrap';
+  var table = document.createElement('table');
+  table.className = 'stock-table';
+
+  var thead = document.createElement('thead');
+  var headRow = '<tr><th class="cell-name">Моя карточка</th>';
+  recentDays.forEach(function (day) { headRow += '<th>' + day.slice(5) + '</th>'; });
+  headRow += '</tr>';
+  thead.innerHTML = headRow;
+  table.appendChild(thead);
+
+  var tbody = document.createElement('tbody');
+  nmIds.forEach(function (nmId) {
+    var product = productsByNm[nmId];
+    var tr = document.createElement('tr');
+    var nameCell = '<td class="cell-name">' + escapeAttr(product.name || ('Артикул ' + nmId)) +
+      (product.vendorCode ? '<br><span style="color:#999;font-size:11px;">' + escapeAttr(product.vendorCode) + '</span>' : '') + '</td>';
+
+    var prevPos = null;
+    var cells = '';
+    recentDays.forEach(function (day) {
+      var dayMatches = history[day].matches || [];
+      var found = dayMatches.filter(function (m) { return String(m.nmID) === String(nmId); })[0];
+      var cls = '';
+      var text = '—';
+      if (found) {
+        text = String(found.position);
+        if (prevPos == null) cls = 'new';
+        else if (found.position < prevPos) cls = 'up';
+        else if (found.position > prevPos) cls = 'down';
+        else cls = 'same';
+        prevPos = found.position;
+      } else if (prevPos != null) {
+        cls = 'gone';
+        text = 'нет';
+      }
+      cells += '<td class="pos-cell ' + cls + '">' + text + '</td>';
+    });
+
+    tr.innerHTML = nameCell + cells;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  tableWrap.appendChild(table);
+  wrap.appendChild(tableWrap);
+
+  return wrap;
+}
+
+function addCompetitor(evt) {
+  evt.preventDefault();
+  var form = evt.target;
+  var url = form.url.value.trim();
+  var name = form.name.value.trim();
+  var errorEl = document.getElementById('competitors-error');
+  errorEl.style.display = 'none';
+  fetch(API_BASE + '/api/competitors', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify({ url: url, name: name })
+  })
+    .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+    .then(function (res) {
+      if (!res.ok) throw new Error((res.data && res.data.error) || 'Не удалось добавить конкурента');
+      form.reset();
+      loadCompetitors();
+    })
+    .catch(function (e) {
+      errorEl.textContent = e.message;
+      errorEl.style.display = 'block';
+    });
+  return false;
+}
+
+function deleteCompetitor(id, name) {
+  if (!confirm('Удалить конкурента «' + name + '» и всю историю по нему?')) return;
+  fetch(API_BASE + '/api/competitors/' + id, {
+    method: 'DELETE',
+    headers: { 'X-Api-Key': API_KEY }
+  }).then(function () { loadCompetitors(); });
+}
+
+function requestCompetitorRefresh(id, btn) {
+  btn.disabled = true;
+  var original = btn.textContent;
+  btn.textContent = 'Запрошено…';
+  fetch(API_BASE + '/api/competitors/' + id + '/request-refresh', { method: 'POST' })
+    .then(function () {
+      alert('Запрос отправлен и будет виден Claude. Чтобы проверить прямо сейчас, напишите Claude в чате: «обнови конкурента» — это делает не сайт, а Claude через ваш браузер.');
+    })
+    .finally(function () {
+      btn.disabled = false;
+      btn.textContent = original;
+    });
+}
+
 function refreshEverything() {
   loadStockTables().then(function () { loadWbStock(); });
   loadJournal();
+  loadCompetitors();
 }
 refreshEverything();
 setInterval(refreshEverything, 5 * 60 * 1000);
