@@ -113,7 +113,7 @@
   <p>Актуальные остатки на складе</p>
 </header>
 <div class="tabs">
-  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="wb-stock" onclick="showTab('wb-stock')">Остатки на ВБ</button><button class="tab-btn" data-tab="journal" onclick="showTab('journal')">Журнал списаний</button><button class="tab-btn" data-tab="competitors" onclick="showTab('competitors')">Конкуренты</button>
+  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="svitshoty" onclick="showTab('svitshoty')">Свитшоты</button><button class="tab-btn" data-tab="brak" onclick="showTab('brak')">Брак (волна)</button><button class="tab-btn" data-tab="wb-stock" onclick="showTab('wb-stock')">Остатки на ВБ</button><button class="tab-btn" data-tab="journal" onclick="showTab('journal')">Журнал списаний</button><button class="tab-btn" data-tab="competitors" onclick="showTab('competitors')">Конкуренты</button>
 </div>
 <main>
     <section class="tab-panel" id="tab-upakovannye">
@@ -191,6 +191,116 @@
           </tr>
         </thead>
         <tbody id="tbody-obshee" data-slug="obshee"></tbody>
+      <tfoot><tr class="total-row"><td colspan="11" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
+      </table>
+      </div>
+    </section>
+    <section class="tab-panel" id="tab-svitshoty">
+      <div class="section-total">Всего единиц: 178</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
+      <div class="table-wrap">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th class="cell-drag"></th>
+            <th class="cell-photo">Фото</th>
+            <th class="cell-name">Название</th>
+            <th class="cell-sku">Артикул</th>
+            <th>S</th>
+            <th>M</th>
+            <th>L</th>
+            <th>XL</th>
+            <th>XXL</th>
+            <th class="cell-total">Итого</th>
+            <th class="cell-cost">Себестоимость</th>
+            <th class="cell-sum">Сумма</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-svitshoty" data-slug="svitshoty">
+        <tr data-id="svitshoty-0">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
+          <td class="cell-photo"><div class="noimg">нет фото</div></td>
+          <td class="cell-name">Свитшот белый</td>
+          <td class="cell-sku">—</td>
+          <td>25</td>
+          <td>2</td>
+          <td>23</td>
+          <td>23</td>
+          <td>0</td>
+          <td class="cell-total">73</td>
+          <td class="cell-cost"><input type="number" class="cost-input" data-name="Свитшот белый" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
+          <td class="cell-sum">—</td>
+        </tr>
+        <tr data-id="svitshoty-2">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
+          <td class="cell-photo"><div class="noimg">нет фото</div></td>
+          <td class="cell-name">Свитшот белый (без размера)</td>
+          <td class="cell-sku">—</td>
+          <td>5</td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td class="cell-total">5</td>
+          <td class="cell-cost"><input type="number" class="cost-input" data-name="Свитшот белый (без размера)" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
+          <td class="cell-sum">—</td>
+        </tr>
+        <tr data-id="svitshoty-1">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
+          <td class="cell-photo"><div class="noimg">нет фото</div></td>
+          <td class="cell-name">Свитшот чёрный</td>
+          <td class="cell-sku">—</td>
+          <td>9</td>
+          <td>18</td>
+          <td>16</td>
+          <td>50</td>
+          <td>0</td>
+          <td class="cell-total">93</td>
+          <td class="cell-cost"><input type="number" class="cost-input" data-name="Свитшот чёрный" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
+          <td class="cell-sum">—</td>
+        </tr>
+        <tr data-id="svitshoty-3">
+          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
+          <td class="cell-photo"><div class="noimg">нет фото</div></td>
+          <td class="cell-name">Свитшот чёрный (без размера)</td>
+          <td class="cell-sku">—</td>
+          <td>7</td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td class="cell-total">7</td>
+          <td class="cell-cost"><input type="number" class="cost-input" data-name="Свитшот чёрный (без размера)" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
+          <td class="cell-sum">—</td>
+        </tr>
+        </tbody>
+      <tfoot><tr class="total-row"><td colspan="11" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
+      </table>
+      </div>
+    </section>
+    <section class="tab-panel" id="tab-brak">
+      <div class="section-total">Загрузка данных…</div>
+      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
+      <div class="hint">Зелёная и синяя рубашка отсюда тоже списываются автоматически — но только когда «Упакованные» и «Неупакованные» по этому размеру уже пусты (см. вкладку «Журнал списаний»)</div>
+      <div class="table-wrap">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th class="cell-drag"></th>
+            <th class="cell-photo">Фото</th>
+            <th class="cell-name">Название</th>
+            <th class="cell-sku">Артикул</th>
+            <th>S</th>
+            <th>M</th>
+            <th>L</th>
+            <th>XL</th>
+            <th>XXL</th>
+            <th class="cell-total">Итого</th>
+            <th class="cell-cost">Себестоимость</th>
+            <th class="cell-sum">Сумма</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-brak" data-slug="brak"></tbody>
       <tfoot><tr class="total-row"><td colspan="11" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
       </table>
       </div>
@@ -521,11 +631,19 @@ var PRODUCT_CATALOG = [
   { name: "Чёрная, длинный рукав", photo: "image15.jpg", skus: "255211396" },
   { name: "Жёлтая полоска, кор. рукав", photo: "image16.jpg", skus: "246580139" },
   { name: "Зип-худи зелёная", photo: "image20.jpg", skus: "648344782" },
-  { name: "Зип-худи коричневая", photo: "image21.jpg", skus: "648207994" },
-  { name: "Свитшот белый", photo: null, skus: null },
-  { name: "Свитшот чёрный", photo: null, skus: null },
-  { name: "Свитшот белый (без размера)", photo: null, skus: null },
-  { name: "Свитшот чёрный (без размера)", photo: null, skus: null }
+  { name: "Зип-худи коричневая", photo: "image21.jpg", skus: "648207994" }
+];
+
+// Брак (волна) — тоже теперь на бэкенде (ключ "stock_brak"), т.к. зелёная и
+// синяя рубашка списываются из него автоматически, когда "Упакованные" и
+// "Неупакованные" по нужному размеру уже пусты (см. BRAK_FALLBACK на сервере).
+// В исходных данных у "Зелёная, кор. рукав (брак, волна)" было две отдельные
+// строки (видимо, две разные партии) — объединили в один общий пул на размер,
+// как и попросили.
+var BRAK_CATALOG = [
+  { name: "Зелёная, кор. рукав (брак, волна)", photo: "image7.jpg", skus: "223913571" },
+  { name: "Синяя, кор. рукав (брак, волна)", photo: "image11.jpg", skus: "223913573" },
+  { name: "Серая, кор. рукав (брак, волна)", photo: "image10.jpg", skus: "223913572" }
 ];
 
 function emptySizes() { return { S: 0, M: 0, L: 0, XL: 0, XXL: 0 }; }
@@ -593,10 +711,12 @@ function renderSizeTable(slug, sizesMap, catalog) {
 function loadStockTables() {
   return Promise.all([
     fetch(API_BASE + '/api/state/stock_packed').then(function (r) { return r.json(); }),
-    fetch(API_BASE + '/api/state/stock_unpacked').then(function (r) { return r.json(); })
+    fetch(API_BASE + '/api/state/stock_unpacked').then(function (r) { return r.json(); }),
+    fetch(API_BASE + '/api/state/stock_brak').then(function (r) { return r.json(); })
   ]).then(function (results) {
     var packed = (results[0] && results[0].value) || {};
     var unpacked = (results[1] && results[1].value) || {};
+    var brak = (results[2] && results[2].value) || {};
     var obshee = {};
     PRODUCT_CATALOG.forEach(function (p) {
       obshee[p.name] = sumSizes(packed[p.name] || emptySizes(), unpacked[p.name] || emptySizes());
@@ -604,6 +724,7 @@ function loadStockTables() {
     renderSizeTable('upakovannye', packed);
     renderSizeTable('neupakovannye', unpacked);
     renderSizeTable('obshee', obshee);
+    renderSizeTable('brak', brak, BRAK_CATALOG);
     applyCostsToInputs();
   }).catch(function (e) {
     console.error('Не удалось загрузить остатки склада', e);
@@ -978,6 +1099,10 @@ function closeWarehouseModal() {
 // "Общее" (buildSkuInfoMap читает #tbody-obshee), поэтому сначала ждём, пока
 // заполнятся Упакованные/Неупакованные/Общее, и только потом считаем ВБ.
 
+// ---------------------------------------------------------------------------
+// Вкладка "Конкуренты": позиции наших карточек в блоке "Смотрите также"
+// у конкурентов, по дням. Сами данные собирает Claude (обычная навигация в
+// браузере), сюда только приходят уже готовые числа через API.
 // ---------------------------------------------------------------------------
 // Вкладка "Конкуренты": позиции наших карточек в блоке "Смотрите также"
 // у конкурентов, по дням. Сами данные собирает Claude (обычная навигация в
