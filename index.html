@@ -60,50 +60,6 @@
   .wh-modal-close { margin-top:14px; border:1px solid #d8d5cd; background:#f6f5f3; border-radius:8px; padding:8px 16px; cursor:pointer; font-size:13px; float:right; }
   .wh-modal-close:hover { background:#eceae3; }
   .wh-row-disabled td { color:#bbb; text-decoration:line-through; }
-  .add-competitor-form { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
-  .add-competitor-form input { border:1px solid #d8d5cd; border-radius:8px; padding:9px 12px; font-size:13px; font-family:inherit; }
-  .add-competitor-form input[name="url"] { flex:1; min-width:280px; }
-  .add-competitor-form input[name="name"] { width:220px; }
-
-  .competitor-grid { display:flex; flex-wrap:wrap; gap:14px; }
-  .competitor-tile { width:170px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); overflow:hidden; cursor:pointer; position:relative; transition:box-shadow .15s, transform .15s; }
-  .competitor-tile:hover { box-shadow:0 6px 18px rgba(0,0,0,.14); transform:translateY(-2px); }
-  .competitor-tile-photo { width:100%; height:170px; object-fit:cover; display:block; background:#eee; }
-  .competitor-tile-photo.noimg { display:flex; align-items:center; justify-content:center; color:#bbb; font-size:11px; text-align:center; padding:8px; }
-  .competitor-tile-body { padding:9px 11px 11px; }
-  .competitor-tile-name { font-weight:700; font-size:13px; line-height:1.3; margin-bottom:3px; max-height:34px; overflow:hidden; }
-  .competitor-tile-meta { color:#999; font-size:11px; }
-  .competitor-tile-summary { margin-top:7px; display:flex; align-items:center; justify-content:space-between; gap:6px; }
-  .competitor-tile-matches { display:inline-block; background:#eef2ff; color:#3949ab; font-weight:700; font-size:11px; padding:3px 8px; border-radius:12px; white-space:nowrap; }
-  .competitor-tile-matches.zero { background:#f2f2ef; color:#999; }
-  .competitor-tile-date { color:#aaa; font-size:10px; }
-  .competitor-tile-remove { position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.92); border:1px solid #e2e0da; color:#b00020; font-size:14px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2; }
-  .competitor-tile-remove:hover { background:#fff; }
-  .competitor-tile-refresh { position:absolute; top:6px; left:6px; width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.92); border:1px solid #e2e0da; font-size:12px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2; }
-  .competitor-tile-refresh:hover { background:#fff; }
-
-  .competitor-modal { max-width:960px; width:94%; max-height:88vh; }
-  .competitor-modal-header { display:flex; gap:14px; align-items:flex-start; margin-bottom:14px; }
-  .competitor-modal-photo { width:90px; height:90px; border-radius:10px; object-fit:cover; background:#eee; flex-shrink:0; }
-  .competitor-modal-title { font-weight:700; font-size:17px; margin-bottom:4px; }
-  .competitor-modal-meta { color:#888; font-size:12px; }
-  .competitor-modal-meta a { color:#888; }
-  .competitor-modal-actions { margin-left:auto; display:flex; gap:8px; flex-shrink:0; }
-  .competitor-modal-actions button { border:1px solid #d8d5cd; background:#f6f5f3; border-radius:20px; padding:7px 14px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; }
-  .competitor-modal-actions button:hover { background:#eceae3; }
-
-  .mycard-cell { display:flex; align-items:center; gap:8px; text-align:left; }
-  .mycard-photo { width:38px; height:38px; border-radius:6px; object-fit:cover; background:#eee; flex-shrink:0; }
-  .mycard-photo.noimg { display:flex; align-items:center; justify-content:center; color:#bbb; font-size:8px; }
-  .mycard-name { font-weight:600; font-size:12px; line-height:1.3; }
-  .mycard-nm { color:#999; font-size:11px; }
-
-  .pos-cell { font-weight:600; }
-  .pos-cell.up { background:#e6f7e9; color:#1a7a34; }
-  .pos-cell.down { background:#fdecea; color:#b00020; }
-  .pos-cell.new { background:#eef2ff; color:#3949ab; }
-  .pos-cell.gone { background:#fdecea; color:#b00020; text-decoration:line-through; font-weight:400; }
-  .pos-cell.same { color:#555; }
 </style>
 </head>
 <body>
@@ -112,7 +68,7 @@
   <p>Актуальные остатки на складе</p>
 </header>
 <div class="tabs">
-  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="svitshoty" onclick="showTab('svitshoty')">Свитшоты</button><button class="tab-btn" data-tab="brak" onclick="showTab('brak')">Брак (волна)</button><button class="tab-btn" data-tab="wb-stock" onclick="showTab('wb-stock')">Остатки на ВБ</button><button class="tab-btn" data-tab="journal" onclick="showTab('journal')">Журнал списаний</button><button class="tab-btn" data-tab="competitors" onclick="showTab('competitors')">Конкуренты</button>
+  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="wb-stock" onclick="showTab('wb-stock')">Остатки на ВБ</button><button class="tab-btn" data-tab="journal" onclick="showTab('journal')">Журнал списаний</button>
 </div>
 <main>
     <section class="tab-panel" id="tab-upakovannye">
@@ -194,116 +150,6 @@
       </table>
       </div>
     </section>
-    <section class="tab-panel" id="tab-svitshoty">
-      <div class="section-total">Всего единиц: 178</div>
-      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
-      <div class="table-wrap">
-      <table class="stock-table">
-        <thead>
-          <tr>
-            <th class="cell-drag"></th>
-            <th class="cell-photo">Фото</th>
-            <th class="cell-name">Название</th>
-            <th class="cell-sku">Артикул</th>
-            <th>S</th>
-            <th>M</th>
-            <th>L</th>
-            <th>XL</th>
-            <th>XXL</th>
-            <th class="cell-total">Итого</th>
-            <th class="cell-cost">Себестоимость</th>
-            <th class="cell-sum">Сумма</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-svitshoty" data-slug="svitshoty">
-        <tr data-id="svitshoty-0">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><div class="noimg">нет фото</div></td>
-          <td class="cell-name">Свитшот белый</td>
-          <td class="cell-sku">—</td>
-          <td>25</td>
-          <td>2</td>
-          <td>23</td>
-          <td>23</td>
-          <td>0</td>
-          <td class="cell-total">73</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Свитшот белый" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="svitshoty-1">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><div class="noimg">нет фото</div></td>
-          <td class="cell-name">Свитшот чёрный</td>
-          <td class="cell-sku">—</td>
-          <td>9</td>
-          <td>18</td>
-          <td>16</td>
-          <td>50</td>
-          <td>0</td>
-          <td class="cell-total">93</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Свитшот чёрный" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="svitshoty-2">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><div class="noimg">нет фото</div></td>
-          <td class="cell-name">Свитшот белый (без размера)</td>
-          <td class="cell-sku">—</td>
-          <td>5</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td class="cell-total">5</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Свитшот белый (без размера)" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        <tr data-id="svitshoty-3">
-          <td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>
-          <td class="cell-photo"><div class="noimg">нет фото</div></td>
-          <td class="cell-name">Свитшот чёрный (без размера)</td>
-          <td class="cell-sku">—</td>
-          <td>7</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td>0</td>
-          <td class="cell-total">7</td>
-          <td class="cell-cost"><input type="number" class="cost-input" data-name="Свитшот чёрный (без размера)" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>
-          <td class="cell-sum">—</td>
-        </tr>
-        </tbody>
-      <tfoot><tr class="total-row"><td colspan="11" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
-      </table>
-      </div>
-    </section>
-    <section class="tab-panel" id="tab-brak">
-      <div class="section-total">Загрузка данных…</div>
-      <div class="hint">Перетащите ⋮⋮ слева, чтобы изменить порядок строк — порядок сохранится на всех устройствах</div>
-      <div class="hint">Зелёная и синяя рубашка отсюда тоже списываются автоматически — но только когда «Упакованные» и «Неупакованные» по этому размеру уже пусты (см. вкладку «Журнал списаний»)</div>
-      <div class="table-wrap">
-      <table class="stock-table">
-        <thead>
-          <tr>
-            <th class="cell-drag"></th>
-            <th class="cell-photo">Фото</th>
-            <th class="cell-name">Название</th>
-            <th class="cell-sku">Артикул</th>
-            <th>S</th>
-            <th>M</th>
-            <th>L</th>
-            <th>XL</th>
-            <th>XXL</th>
-            <th class="cell-total">Итого</th>
-            <th class="cell-cost">Себестоимость</th>
-            <th class="cell-sum">Сумма</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-brak" data-slug="brak"></tbody>
-      <tfoot><tr class="total-row"><td colspan="11" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
-      </table>
-      </div>
-    </section>
     <section class="tab-panel" id="tab-wb-stock">
       <div class="section-total" id="wb-stock-total">Загрузка данных…</div>
       <div class="hint" id="wb-stock-updated">Данные ещё не получены</div>
@@ -353,21 +199,8 @@
       </table>
       </div>
     </section>
-    <section class="tab-panel" id="tab-competitors">
-      <div class="hint">Отслеживаем, сколько ваших карточек показывается в блоке «Смотрите также» («Похожие товары») у конкурента и на каких позициях — по дням. Зелёным — позиция улучшилась (карточка поднялась выше), красным — ухудшилась или карточка пропала из блока.</div>
-      <form class="add-competitor-form" onsubmit="return addCompetitor(event)">
-        <input type="text" name="url" placeholder="Ссылка на карточку конкурента (wildberries.ru/catalog/.../detail.aspx)" required>
-        <input type="text" name="name" placeholder="Название (необязательно)">
-        <button type="submit" class="wh-global-btn">+ Добавить конкурента</button>
-      </form>
-      <div id="competitors-error" class="hint" style="display:none;color:#b00020;"></div>
-      <div id="competitors-list" class="competitor-grid"><div class="hint">Загрузка…</div></div>
-    </section>
   <div class="updated">Обновлено вручную · данные подготовлены Claude</div>
 </main>
-<div class="wh-modal-overlay" id="competitor-modal-overlay" onclick="if(event.target===this) closeCompetitorModal();">
-  <div class="wh-modal competitor-modal" id="competitor-modal-body"></div>
-</div>
 <div class="wh-modal-overlay" id="wh-modal-overlay" onclick="if(event.target===this) closeWarehouseModal();">
   <div class="wh-modal">
     <h3 id="wh-modal-title">Склады</h3>
@@ -630,20 +463,19 @@ var PRODUCT_CATALOG = [
   { name: "Чёрная, длинный рукав", photo: "image15.jpg", skus: "255211396" },
   { name: "Жёлтая полоска, кор. рукав", photo: "image16.jpg", skus: "246580139" },
   { name: "Зип-худи зелёная", photo: "image20.jpg", skus: "648344782" },
-  { name: "Зип-худи коричневая", photo: "image21.jpg", skus: "648207994" }
+  { name: "Зип-худи коричневая", photo: "image21.jpg", skus: "648207994" },
+  { name: "Свитшот белый", photo: null, skus: null },
+  { name: "Свитшот чёрный", photo: null, skus: null },
+  { name: "Свитшот белый (без размера)", photo: null, skus: null },
+  { name: "Свитшот чёрный (без размера)", photo: null, skus: null }
 ];
 
-// Брак (волна) — тоже теперь на бэкенде (ключ "stock_brak"), т.к. зелёная и
-// синяя рубашка списываются из него автоматически, когда "Упакованные" и
-// "Неупакованные" по нужному размеру уже пусты (см. BRAK_FALLBACK на сервере).
-// В исходных данных у "Зелёная, кор. рукав (брак, волна)" было две отдельные
-// строки (видимо, две разные партии) — объединили в один общий пул на размер,
-// как и попросили.
-var BRAK_CATALOG = [
-  { name: "Зелёная, кор. рукав (брак, волна)", photo: "image7.jpg", skus: "223913571" },
-  { name: "Синяя, кор. рукав (брак, волна)", photo: "image11.jpg", skus: "223913573" },
-  { name: "Серая, кор. рукав (брак, волна)", photo: "image10.jpg", skus: "223913572" }
-];
+// Отдельные вкладки "Свитшоты" и "Брак (волна)" убрали по просьбе пользователя:
+// свитшоты теперь просто дополнительные строки в общем каталоге (см. выше,
+// попадают в Неупакованные), а брак (волна) слили с остатками основных
+// артикулов (Зелёная/Синяя/Серая полоска, кор. рукав), т.к. эти партии по факту
+// упаковываются под тем же артикулом. Данные на бэкенде (stock_unpacked/
+// stock_brak) уже обновлены соответственно 2026-08-03.
 
 function emptySizes() { return { S: 0, M: 0, L: 0, XL: 0, XXL: 0 }; }
 
@@ -710,12 +542,10 @@ function renderSizeTable(slug, sizesMap, catalog) {
 function loadStockTables() {
   return Promise.all([
     fetch(API_BASE + '/api/state/stock_packed').then(function (r) { return r.json(); }),
-    fetch(API_BASE + '/api/state/stock_unpacked').then(function (r) { return r.json(); }),
-    fetch(API_BASE + '/api/state/stock_brak').then(function (r) { return r.json(); })
+    fetch(API_BASE + '/api/state/stock_unpacked').then(function (r) { return r.json(); })
   ]).then(function (results) {
     var packed = (results[0] && results[0].value) || {};
     var unpacked = (results[1] && results[1].value) || {};
-    var brak = (results[2] && results[2].value) || {};
     var obshee = {};
     PRODUCT_CATALOG.forEach(function (p) {
       obshee[p.name] = sumSizes(packed[p.name] || emptySizes(), unpacked[p.name] || emptySizes());
@@ -723,7 +553,6 @@ function loadStockTables() {
     renderSizeTable('upakovannye', packed);
     renderSizeTable('neupakovannye', unpacked);
     renderSizeTable('obshee', obshee);
-    renderSizeTable('brak', brak, BRAK_CATALOG);
     applyCostsToInputs();
   }).catch(function (e) {
     console.error('Не удалось загрузить остатки склада', e);
@@ -1097,298 +926,9 @@ function closeWarehouseModal() {
 // Порядок важен: "Остатки на ВБ" сопоставляет товары по данным из вкладки
 // "Общее" (buildSkuInfoMap читает #tbody-obshee), поэтому сначала ждём, пока
 // заполнятся Упакованные/Неупакованные/Общее, и только потом считаем ВБ.
-
-// ---------------------------------------------------------------------------
-// Вкладка "Конкуренты": позиции наших карточек в блоке "Смотрите также"
-// у конкурентов, по дням. Сами данные собирает Claude (обычная навигация в
-// браузере), сюда только приходят уже готовые числа через API.
-// ---------------------------------------------------------------------------
-// Вкладка "Конкуренты": позиции наших карточек в блоке "Смотрите также"
-// у конкурентов, по дням. Сами данные собирает Claude (обычная навигация в
-// браузере), сюда только приходят уже готовые числа через API.
-// Список конкурентов — компактные плитки (фото, название, артикул, счётчик
-// найденных карточек). Полная таблица с историей по дням открывается в
-// модалке по клику на плитку, чтобы вкладка не превращалась в длинную простыню
-// при большом числе конкурентов.
-var COMPETITORS_MAX_HISTORY_DAYS = 14;
-var competitorsCache = [];
-
-function noPhotoPlaceholder(el, text) {
-  el.classList.add('noimg');
-  el.removeAttribute('src');
-  el.textContent = text || 'Нет фото';
-}
-
-function loadCompetitors() {
-  var listEl = document.getElementById('competitors-list');
-  if (!listEl) return;
-  fetch(API_BASE + '/api/competitors')
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      var competitors = (data && data.competitors) || [];
-      competitorsCache = competitors;
-      if (!competitors.length) {
-        listEl.innerHTML = '<div class="hint">Пока нет ни одного конкурента — добавьте ссылку на карточку выше.</div>';
-        return;
-      }
-      listEl.innerHTML = '';
-      competitors.forEach(function (c) {
-        listEl.appendChild(renderCompetitorTile(c));
-      });
-    })
-    .catch(function (e) {
-      console.error('Не удалось загрузить конкурентов', e);
-      listEl.innerHTML = '<div class="hint" style="color:#b00020;">Не удалось связаться с сервером</div>';
-    });
-}
-
-function renderCompetitorTile(competitor) {
-  var tile = document.createElement('div');
-  tile.className = 'competitor-tile';
-  tile.addEventListener('click', function () { openCompetitorModal(competitor.id); });
-
-  var photoHtml = competitor.photo
-    ? '<img class="competitor-tile-photo" src="' + escapeAttr(competitor.photo) + '" alt="">'
-    : '<div class="competitor-tile-photo noimg">Нет фото</div>';
-
-  var lastScan = competitor.lastScan;
-  var matchesHtml = lastScan
-    ? '<span class="competitor-tile-matches' + (lastScan.matchesCount === 0 ? ' zero' : '') + '">' + lastScan.matchesCount + ' карт.</span>'
-    : '<span class="competitor-tile-matches zero">нет данных</span>';
-  var dateHtml = lastScan ? '<span class="competitor-tile-date">' + lastScan.day.slice(5) + '</span>' : '';
-
-  tile.innerHTML =
-    '<button class="competitor-tile-refresh" type="button" title="Запросить обновление">&#8635;</button>' +
-    '<button class="competitor-tile-remove" type="button" title="Удалить">&times;</button>' +
-    photoHtml +
-    '<div class="competitor-tile-body">' +
-      '<div class="competitor-tile-name">' + escapeAttr(competitor.name) + '</div>' +
-      '<div class="competitor-tile-meta">арт. ' + competitor.nmID + '</div>' +
-      '<div class="competitor-tile-summary">' + matchesHtml + dateHtml + '</div>' +
-    '</div>';
-
-  tile.querySelector('.competitor-tile-remove').addEventListener('click', function (evt) {
-    evt.stopPropagation();
-    deleteCompetitor(competitor.id, competitor.name);
-  });
-  tile.querySelector('.competitor-tile-refresh').addEventListener('click', function (evt) {
-    evt.stopPropagation();
-    requestCompetitorRefresh(competitor.id, this);
-  });
-
-  return tile;
-}
-
-function openCompetitorModal(id) {
-  var competitor = competitorsCache.filter(function (c) { return c.id === id; })[0];
-  if (!competitor) return;
-  var modalBody = document.getElementById('competitor-modal-body');
-  modalBody.innerHTML = '<div class="hint">Загрузка…</div>';
-  document.getElementById('competitor-modal-overlay').classList.add('open');
-
-  fetch(API_BASE + '/api/competitors/' + id + '/history')
-    .then(function (r) { return r.json(); })
-    .then(function (historyData) {
-      renderCompetitorModal(competitor, historyData);
-    })
-    .catch(function () {
-      modalBody.innerHTML = '<div class="hint" style="color:#b00020;">Не удалось загрузить историю</div>';
-    });
-}
-
-function closeCompetitorModal() {
-  document.getElementById('competitor-modal-overlay').classList.remove('open');
-}
-
-function renderCompetitorModal(competitor, historyData) {
-  var modalBody = document.getElementById('competitor-modal-body');
-  var history = (historyData && historyData.history) || {};
-  var days = Object.keys(history).sort();
-  var recentDays = days.slice(-COMPETITORS_MAX_HISTORY_DAYS);
-
-  // Карточка, которая хоть раз попадала в топ конкурента, остаётся строкой
-  // в таблице навсегда (с фото) — даже если позже выпала из топ-30 и из
-  // отображаемого окна дней. Поэтому здесь берём ВСЮ историю (days), а не
-  // только последние recentDays, чтобы не терять такие карточки.
-  var productsByNm = {};
-  days.forEach(function (day) {
-    (history[day].matches || []).forEach(function (m) {
-      productsByNm[m.nmID] = { name: m.myName, vendorCode: m.myVendorCode, photo: m.myPhoto };
-    });
-  });
-
-  // Сортируем строки по позиции по возрастанию (от лучшей к худшей). Сначала
-  // ищем позицию в видимом окне дней (recentDays) — такие карточки идут
-  // первыми, по возрастанию позиции. Если карточки нет в видимом окне, но
-  // она когда-то встречалась раньше — ищем её последнюю известную позицию по
-  // всей истории и ставим такую строку в конец списка (после видимых).
-  function latestPositionFor(nmId) {
-    for (var i = recentDays.length - 1; i >= 0; i--) {
-      var day = recentDays[i];
-      var found = (history[day].matches || []).filter(function (m) { return String(m.nmID) === String(nmId); })[0];
-      if (found) return { position: found.position, daysAgo: recentDays.length - 1 - i };
-    }
-    for (var j = days.length - 1; j >= 0; j--) {
-      var day2 = days[j];
-      var found2 = (history[day2].matches || []).filter(function (m) { return String(m.nmID) === String(nmId); })[0];
-      if (found2) return { position: found2.position, daysAgo: Infinity };
-    }
-    return { position: Infinity, daysAgo: Infinity };
-  }
-
-  var nmIds = Object.keys(productsByNm).sort(function (a, b) {
-    var pa = latestPositionFor(a);
-    var pb = latestPositionFor(b);
-    if (pa.daysAgo !== pb.daysAgo) return pa.daysAgo - pb.daysAgo;
-    return pa.position - pb.position;
-  });
-
-  var lastDay = days.length ? days[days.length - 1] : null;
-  var lastScan = lastDay ? history[lastDay] : null;
-
-  var photoHtml = competitor.photo
-    ? '<img class="competitor-modal-photo" src="' + escapeAttr(competitor.photo) + '" alt="">'
-    : '<div class="competitor-modal-photo" style="display:flex;align-items:center;justify-content:center;color:#bbb;font-size:10px;">Нет фото</div>';
-
-  var html =
-    '<div class="competitor-modal-header">' +
-      photoHtml +
-      '<div>' +
-        '<div class="competitor-modal-title">' + escapeAttr(competitor.name) + '</div>' +
-        '<div class="competitor-modal-meta"><a href="' + escapeAttr(competitor.url) + '" target="_blank" rel="noopener">артикул ' + competitor.nmID + ' на WB &#8594;</a>' +
-        (lastScan
-          ? '<br>проверено ' + lastDay + ' (' + new Date(lastScan.scannedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + '), карточек в блоке «Смотрите также»: ' + lastScan.totalSeen
-          : '<br>ещё не проверялось') +
-        '</div>' +
-      '</div>' +
-      '<div class="competitor-modal-actions">' +
-        '<button data-action="refresh" type="button">Обновить</button>' +
-        '<button data-action="delete" type="button" style="border-color:#b00020;color:#b00020;">Удалить</button>' +
-      '</div>' +
-    '</div>' +
-    '<div id="competitor-modal-table-wrap"></div>';
-
-  modalBody.innerHTML = html;
-
-  modalBody.querySelector('[data-action="refresh"]').addEventListener('click', function () { requestCompetitorRefresh(competitor.id, this); });
-  modalBody.querySelector('[data-action="delete"]').addEventListener('click', function () {
-    deleteCompetitor(competitor.id, competitor.name);
-    closeCompetitorModal();
-  });
-
-  var tableWrapTarget = modalBody.querySelector('#competitor-modal-table-wrap');
-
-  if (!nmIds.length) {
-    var empty = document.createElement('div');
-    empty.className = 'hint';
-    empty.textContent = 'Пока нет данных — ни одна ваша карточка не найдена в «Смотрите также» у этого конкурента, либо проверка ещё не проводилась.';
-    tableWrapTarget.appendChild(empty);
-    return;
-  }
-
-  var tableWrap = document.createElement('div');
-  tableWrap.className = 'table-wrap';
-  var table = document.createElement('table');
-  table.className = 'stock-table';
-
-  var thead = document.createElement('thead');
-  var headRow = '<tr><th class="cell-name">Моя карточка</th>';
-  recentDays.forEach(function (day) { headRow += '<th>' + day.slice(5) + '</th>'; });
-  headRow += '</tr>';
-  thead.innerHTML = headRow;
-  table.appendChild(thead);
-
-  var tbody = document.createElement('tbody');
-  nmIds.forEach(function (nmId) {
-    var product = productsByNm[nmId];
-    var tr = document.createElement('tr');
-    var photoCellHtml = product.photo
-      ? '<img class="mycard-photo" src="' + escapeAttr(product.photo) + '" alt="">'
-      : '<div class="mycard-photo noimg">нет фото</div>';
-    var nameCell = '<td class="cell-name"><div class="mycard-cell">' + photoCellHtml +
-      '<div><div class="mycard-name">' + escapeAttr(product.name || ('Артикул ' + nmId)) + '</div>' +
-      '<div class="mycard-nm">арт. ' + nmId + (product.vendorCode ? ' · ' + escapeAttr(product.vendorCode) : '') + '</div></div></div></td>';
-
-    var prevPos = null;
-    var cells = '';
-    recentDays.forEach(function (day) {
-      var dayMatches = history[day].matches || [];
-      var found = dayMatches.filter(function (m) { return String(m.nmID) === String(nmId); })[0];
-      var cls = '';
-      var text = '—';
-      if (found) {
-        text = String(found.position);
-        if (prevPos == null) cls = 'new';
-        else if (found.position < prevPos) cls = 'up';
-        else if (found.position > prevPos) cls = 'down';
-        else cls = 'same';
-        prevPos = found.position;
-      } else if (prevPos != null) {
-        cls = 'gone';
-        text = 'нет';
-      }
-      cells += '<td class="pos-cell ' + cls + '">' + text + '</td>';
-    });
-
-    tr.innerHTML = nameCell + cells;
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody);
-  tableWrap.appendChild(table);
-  tableWrapTarget.appendChild(tableWrap);
-}
-
-function addCompetitor(evt) {
-  evt.preventDefault();
-  var form = evt.target;
-  var url = form.url.value.trim();
-  var name = form.name.value.trim();
-  var errorEl = document.getElementById('competitors-error');
-  errorEl.style.display = 'none';
-  fetch(API_BASE + '/api/competitors', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
-    body: JSON.stringify({ url: url, name: name })
-  })
-    .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
-    .then(function (res) {
-      if (!res.ok) throw new Error((res.data && res.data.error) || 'Не удалось добавить конкурента');
-      form.reset();
-      loadCompetitors();
-    })
-    .catch(function (e) {
-      errorEl.textContent = e.message;
-      errorEl.style.display = 'block';
-    });
-  return false;
-}
-
-function deleteCompetitor(id, name) {
-  if (!confirm('Удалить конкурента «' + name + '» и всю историю по нему?')) return;
-  fetch(API_BASE + '/api/competitors/' + id, {
-    method: 'DELETE',
-    headers: { 'X-Api-Key': API_KEY }
-  }).then(function () { loadCompetitors(); });
-}
-
-function requestCompetitorRefresh(id, btn) {
-  btn.disabled = true;
-  var original = btn.textContent;
-  btn.textContent = btn.classList.contains('competitor-tile-refresh') ? '…' : 'Запрошено…';
-  fetch(API_BASE + '/api/competitors/' + id + '/request-refresh', { method: 'POST' })
-    .then(function () {
-      alert('Запрос отправлен и будет виден Claude. Чтобы проверить прямо сейчас, напишите Claude в чате: «обнови конкурента» — это делает не сайт, а Claude через ваш браузер.');
-    })
-    .finally(function () {
-      btn.disabled = false;
-      btn.textContent = original;
-    });
-}
-
 function refreshEverything() {
   loadStockTables().then(function () { loadWbStock(); });
   loadJournal();
-  loadCompetitors();
 }
 refreshEverything();
 setInterval(refreshEverything, 5 * 60 * 1000);
