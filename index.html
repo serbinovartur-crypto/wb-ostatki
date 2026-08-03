@@ -76,6 +76,9 @@
   .competitor-tile-summary { margin-top:7px; display:flex; align-items:center; justify-content:space-between; gap:6px; }
   .competitor-tile-matches { display:inline-block; background:#eef2ff; color:#3949ab; font-weight:700; font-size:11px; padding:3px 8px; border-radius:12px; white-space:nowrap; }
   .competitor-tile-matches.zero { background:#f2f2ef; color:#999; }
+  .competitor-tile-delta { font-weight:700; }
+  .competitor-tile-delta.down { color:#c0392b; }
+  .competitor-tile-delta.up { color:#2e7d32; }
   .competitor-tile-date { color:#aaa; font-size:10px; }
   .competitor-tile-remove { position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.92); border:1px solid #e2e0da; color:#b00020; font-size:14px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2; }
   .competitor-tile-remove:hover { background:#fff; }
@@ -1028,8 +1031,13 @@ function renderCompetitorTile(competitor) {
     : '<div class="competitor-tile-photo noimg">Нет фото</div>';
 
   var lastScan = competitor.lastScan;
+  var deltaHtml = '';
+  if (lastScan && lastScan.delta !== null && lastScan.delta !== undefined && lastScan.delta !== 0) {
+    var deltaSign = lastScan.delta > 0 ? '+' : '';
+    deltaHtml = ' <span class="competitor-tile-delta ' + (lastScan.delta < 0 ? 'down' : 'up') + '">(' + deltaSign + lastScan.delta + ')</span>';
+  }
   var matchesHtml = lastScan
-    ? '<span class="competitor-tile-matches' + (lastScan.matchesCount === 0 ? ' zero' : '') + '">' + lastScan.matchesCount + ' карт.</span>'
+    ? '<span class="competitor-tile-matches' + (lastScan.matchesCount === 0 ? ' zero' : '') + '">' + lastScan.matchesCount + ' карт.' + deltaHtml + '</span>'
     : '<span class="competitor-tile-matches zero">нет данных</span>';
   var dateHtml = lastScan ? '<span class="competitor-tile-date">' + lastScan.day.slice(5) + '</span>' : '';
 
