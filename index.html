@@ -1206,22 +1206,32 @@ function renderCompetitorModal(competitor, historyData) {
   var days = Object.keys(history).sort();
   var recentDays = days.slice(-COMPETITORS_MAX_HISTORY_DAYS);
 
+  // Карточка, которая хоть раз попадала в топ конкурента, остаётся строкой
+  // в таблице навсегда (с фото) — даже если позже выпала из топ-30 и из
+  // отображаемого окна дней. Поэтому здесь берём ВСЮ историю (days), а не
+  // только последние recentDays, чтобы не терять такие карточки.
   var productsByNm = {};
-  recentDays.forEach(function (day) {
+  days.forEach(function (day) {
     (history[day].matches || []).forEach(function (m) {
       productsByNm[m.nmID] = { name: m.myName, vendorCode: m.myVendorCode, photo: m.myPhoto };
     });
   });
 
-  // Сортируем строки по позиции по возрастанию (от лучшей к худшей), беря
-  // позицию из самого свежего дня, где карточка была найдена; если сегодня
-  // карточки нет — берём последнюю известную позицию, такие строки уходят
-  // в конец списка после найденных сегодня.
+  // Сортируем строки по позиции по возрастанию (от лучшей к худшей). Сначала
+  // ищем позицию в видимом окне дней (recentDays) — такие карточки идут
+  // первыми, по возрастанию позиции. Если карточки нет в видимом окне, но
+  // она когда-то встречалась раньше — ищем её последнюю известную позицию по
+  // всей истории и ставим такую строку в конец списка (после видимых).
   function latestPositionFor(nmId) {
     for (var i = recentDays.length - 1; i >= 0; i--) {
       var day = recentDays[i];
       var found = (history[day].matches || []).filter(function (m) { return String(m.nmID) === String(nmId); })[0];
       if (found) return { position: found.position, daysAgo: recentDays.length - 1 - i };
+    }
+    for (var j = days.length - 1; j >= 0; j--) {
+      var day2 = days[j];
+      var found2 = (history[day2].matches || []).filter(function (m) { return String(m.nmID) === String(nmId); })[0];
+      if (found2) return { position: found2.position, daysAgo: Infinity };
     }
     return { position: Infinity, daysAgo: Infinity };
   }
