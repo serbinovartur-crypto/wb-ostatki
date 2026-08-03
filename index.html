@@ -1212,7 +1212,26 @@ function renderCompetitorModal(competitor, historyData) {
       productsByNm[m.nmID] = { name: m.myName, vendorCode: m.myVendorCode, photo: m.myPhoto };
     });
   });
-  var nmIds = Object.keys(productsByNm);
+
+  // Сортируем строки по позиции по возрастанию (от лучшей к худшей), беря
+  // позицию из самого свежего дня, где карточка была найдена; если сегодня
+  // карточки нет — берём последнюю известную позицию, такие строки уходят
+  // в конец списка после найденных сегодня.
+  function latestPositionFor(nmId) {
+    for (var i = recentDays.length - 1; i >= 0; i--) {
+      var day = recentDays[i];
+      var found = (history[day].matches || []).filter(function (m) { return String(m.nmID) === String(nmId); })[0];
+      if (found) return { position: found.position, daysAgo: recentDays.length - 1 - i };
+    }
+    return { position: Infinity, daysAgo: Infinity };
+  }
+
+  var nmIds = Object.keys(productsByNm).sort(function (a, b) {
+    var pa = latestPositionFor(a);
+    var pb = latestPositionFor(b);
+    if (pa.daysAgo !== pb.daysAgo) return pa.daysAgo - pb.daysAgo;
+    return pa.position - pb.position;
+  });
 
   var lastDay = days.length ? days[days.length - 1] : null;
   var lastScan = lastDay ? history[lastDay] : null;
