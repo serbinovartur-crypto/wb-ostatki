@@ -257,7 +257,7 @@
         <input type="text" name="name" placeholder="Название (необязательно)">
         <button type="submit" class="wh-global-btn">+ Добавить конкурента</button>
       </form>
-      <button type="button" id="competitors-refresh-all-btn" class="wh-global-btn" onclick="requestAllCompetitorsRefresh()">&#8635; ÐÐ°Ð¿ÑÐ¾ÑÐ¸ÑÑ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ Ð²ÑÐµÑ Ð°ÐºÑÐ¸Ð²Ð½ÑÑ</button>
+      <button type="button" id="competitors-refresh-all-btn" class="wh-global-btn" onclick="requestAllCompetitorsRefresh()">&#8635; Запросить обновление всех активных</button>
       <div id="competitors-error" class="hint" style="display:none;color:#b00020;"></div>
       <div id="competitors-list" class="competitor-grid"><div class="hint">Загрузка…</div></div>
     </section>
@@ -1033,7 +1033,7 @@ function renderCompetitorTile(competitor) {
 
   var photoHtml = competitor.photo
     ? '<img class="competitor-tile-photo" src="' + escapeAttr(competitor.photo) + '" alt="">'
-    : '<div class="competitor-tile-photo noimg">ÐÐµÑ ÑÐ¾ÑÐ¾</div>';
+    : '<div class="competitor-tile-photo noimg">Нет фото</div>';
 
   var lastScan = competitor.lastScan;
   var deltaHtml = '';
@@ -1042,20 +1042,20 @@ function renderCompetitorTile(competitor) {
     deltaHtml = ' <span class="competitor-tile-delta ' + (lastScan.delta < 0 ? 'down' : 'up') + '">(' + deltaSign + lastScan.delta + ')</span>';
   }
   var matchesHtml = lastScan
-    ? '<span class="competitor-tile-matches' + (lastScan.matchesCount === 0 ? ' zero' : '') + '">' + lastScan.matchesCount + ' ÐºÐ°ÑÑ.' + deltaHtml + '</span>'
-    : '<span class="competitor-tile-matches zero">Ð½ÐµÑ Ð´Ð°Ð½Ð½ÑÑ</span>';
+    ? '<span class="competitor-tile-matches' + (lastScan.matchesCount === 0 ? ' zero' : '') + '">' + lastScan.matchesCount + ' карт.' + deltaHtml + '</span>'
+    : '<span class="competitor-tile-matches zero">нет данных</span>';
   var dateHtml = lastScan ? '<span class="competitor-tile-date">' + lastScan.day.slice(5) + '</span>' : '';
   var displayName = competitor.wbTitle || competitor.name;
 
   tile.innerHTML =
-    '<button class="competitor-tile-refresh" type="button" title="ÐÐ°Ð¿ÑÐ¾ÑÐ¸ÑÑ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ">&#8635;</button>' +
-    '<button class="competitor-tile-remove" type="button" title="Ð£Ð´Ð°Ð»Ð¸ÑÑ">&times;</button>' +
+    '<button class="competitor-tile-refresh" type="button" title="Запросить обновление">&#8635;</button>' +
+    '<button class="competitor-tile-remove" type="button" title="Удалить">&times;</button>' +
     photoHtml +
     '<div class="competitor-tile-body">' +
       '<div class="competitor-tile-name">' + escapeAttr(displayName) + '</div>' +
-      '<div class="competitor-tile-meta">Ð°ÑÑ. ' + competitor.nmID + '</div>' +
+      '<div class="competitor-tile-meta">арт. ' + competitor.nmID + '</div>' +
       '<div class="competitor-tile-summary">' + matchesHtml + dateHtml + '</div>' +
-      '<label class="competitor-tile-active-toggle"><input type="checkbox" class="competitor-active-checkbox"' + (isActive ? ' checked' : '') + '> Ð°ÐºÑÐ¸Ð²ÐµÐ½</label>' +
+      '<label class="competitor-tile-active-toggle"><input type="checkbox" class="competitor-active-checkbox"' + (isActive ? ' checked' : '') + '> активен</label>' +
     '</div>';
 
   tile.querySelector('.competitor-tile-remove').addEventListener('click', function (evt) {
