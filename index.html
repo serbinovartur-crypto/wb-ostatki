@@ -84,6 +84,9 @@
   .competitor-tile-remove:hover { background:#fff; }
   .competitor-tile-refresh { position:absolute; top:6px; left:6px; width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.92); border:1px solid #e2e0da; font-size:12px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2; }
   .competitor-tile-refresh:hover { background:#fff; }
+  .competitor-tile.inactive { opacity:.45; filter:grayscale(65%); }
+  .competitor-tile-active-toggle { display:flex; align-items:center; gap:5px; margin-top:7px; font-size:11px; color:#777; cursor:pointer; user-select:none; }
+  .competitor-tile-active-toggle input { cursor:pointer; margin:0; }
 
   .competitor-modal { max-width:960px; width:94%; max-height:88vh; }
   .competitor-modal-header { display:flex; gap:14px; align-items:flex-start; margin-bottom:14px; }
@@ -254,6 +257,7 @@
         <input type="text" name="name" placeholder="Название (необязательно)">
         <button type="submit" class="wh-global-btn">+ Добавить конкурента</button>
       </form>
+      <button type="button" id="competitors-refresh-all-btn" class="wh-global-btn" onclick="requestAllCompetitorsRefresh()">&#8635; ÐÐ°Ð¿ÑÐ¾ÑÐ¸ÑÑ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ Ð²ÑÐµÑ Ð°ÐºÑÐ¸Ð²Ð½ÑÑ</button>
       <div id="competitors-error" class="hint" style="display:none;color:#b00020;"></div>
       <div id="competitors-list" class="competitor-grid"><div class="hint">Загрузка…</div></div>
     </section>
@@ -1023,12 +1027,13 @@ function loadCompetitors() {
 
 function renderCompetitorTile(competitor) {
   var tile = document.createElement('div');
-  tile.className = 'competitor-tile';
+  var isActive = competitor.active !== false;
+  tile.className = 'competitor-tile' + (isActive ? '' : ' inactive');
   tile.addEventListener('click', function () { openCompetitorModal(competitor.id); });
 
   var photoHtml = competitor.photo
     ? '<img class="competitor-tile-photo" src="' + escapeAttr(competitor.photo) + '" alt="">'
-    : '<div class="competitor-tile-photo noimg">Нет фото</div>';
+    : '<div class="competitor-tile-photo noimg">ÐÐµÑ ÑÐ¾ÑÐ¾</div>';
 
   var lastScan = competitor.lastScan;
   var deltaHtml = '';
@@ -1037,18 +1042,20 @@ function renderCompetitorTile(competitor) {
     deltaHtml = ' <span class="competitor-tile-delta ' + (lastScan.delta < 0 ? 'down' : 'up') + '">(' + deltaSign + lastScan.delta + ')</span>';
   }
   var matchesHtml = lastScan
-    ? '<span class="competitor-tile-matches' + (lastScan.matchesCount === 0 ? ' zero' : '') + '">' + lastScan.matchesCount + ' карт.' + deltaHtml + '</span>'
-    : '<span class="competitor-tile-matches zero">нет данных</span>';
+    ? '<span class="competitor-tile-matches' + (lastScan.matchesCount === 0 ? ' zero' : '') + '">' + lastScan.matchesCount + ' ÐºÐ°ÑÑ.' + deltaHtml + '</span>'
+    : '<span class="competitor-tile-matches zero">Ð½ÐµÑ Ð´Ð°Ð½Ð½ÑÑ</span>';
   var dateHtml = lastScan ? '<span class="competitor-tile-date">' + lastScan.day.slice(5) + '</span>' : '';
+  var displayName = competitor.wbTitle || competitor.name;
 
   tile.innerHTML =
-    '<button class="competitor-tile-refresh" type="button" title="Запросить обновление">&#8635;</button>' +
-    '<button class="competitor-tile-remove" type="button" title="Удалить">&times;</button>' +
+    '<button class="competitor-tile-refresh" type="button" title="ÐÐ°Ð¿ÑÐ¾ÑÐ¸ÑÑ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ">&#8635;</button>' +
+    '<button class="competitor-tile-remove" type="button" title="Ð£Ð´Ð°Ð»Ð¸ÑÑ">&times;</button>' +
     photoHtml +
     '<div class="competitor-tile-body">' +
-      '<div class="competitor-tile-name">' + escapeAttr(competitor.name) + '</div>' +
-      '<div class="competitor-tile-meta">арт. ' + competitor.nmID + '</div>' +
+      '<div class="competitor-tile-name">' + escapeAttr(displayName) + '</div>' +
+      '<div class="competitor-tile-meta">Ð°ÑÑ. ' + competitor.nmID + '</div>' +
       '<div class="competitor-tile-summary">' + matchesHtml + dateHtml + '</div>' +
+      '<label class="competitor-tile-active-toggle"><input type="checkbox" class="competitor-active-checkbox"' + (isActive ? ' checked' : '') + '> Ð°ÐºÑÐ¸Ð²ÐµÐ½</label>' +
     '</div>';
 
   tile.querySelector('.competitor-tile-remove').addEventListener('click', function (evt) {
@@ -1058,6 +1065,12 @@ function renderCompetitorTile(competitor) {
   tile.querySelector('.competitor-tile-refresh').addEventListener('click', function (evt) {
     evt.stopPropagation();
     requestCompetitorRefresh(competitor.id, this);
+  });
+  tile.querySelector('.competitor-active-checkbox').addEventListener('click', function (evt) {
+    evt.stopPropagation();
+  });
+  tile.querySelector('.competitor-active-checkbox').addEventListener('change', function () {
+    toggleCompetitorActive(competitor.id, this);
   });
 
   return tile;
@@ -1277,7 +1290,42 @@ function requestCompetitorRefresh(id, btn) {
     });
 }
 
-function refreshEverything() {
+
+function toggleCompetitorActive(id, checkbox) {
+  var active = checkbox.checked;
+  checkbox.disabled = true;
+  fetch(API_BASE + '/api/competitors/' + id + '/active', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify({ active: active })
+  })
+    .then(function () { loadCompetitors(); })
+    .catch(function () {
+      alert('ÐÐµ ÑÐ´Ð°Ð»Ð¾ÑÑ Ð¸Ð·Ð¼ÐµÐ½Ð¸ÑÑ ÑÑÐ°ÑÑÑ ÐºÐ¾Ð½ÐºÑÑÐµÐ½ÑÐ°');
+      checkbox.checked = !active;
+      checkbox.disabled = false;
+    });
+}
+
+function requestAllCompetitorsRefresh() {
+  var activeCompetitors = (competitorsCache || []).filter(function (c) { return c.active !== false; });
+  if (!activeCompetitors.length) { alert('ÐÐµÑ Ð°ÐºÑÐ¸Ð²Ð½ÑÑ ÐºÐ¾Ð½ÐºÑÑÐµÐ½ÑÐ¾Ð² Ð´Ð»Ñ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ñ'); return; }
+  var btn = document.getElementById('competitors-refresh-all-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'ÐÑÐ¿ÑÐ°Ð²ÐºÐ°â¦'; }
+  Promise.all(activeCompetitors.map(function (c) {
+    return fetch(API_BASE + '/api/competitors/' + c.id + '/request-refresh', { method: 'POST' });
+  }))
+    .then(function () {
+      alert('ÐÐ°ÑÐ²ÐºÐ° Ð¾ÑÐ¿ÑÐ°Ð²Ð»ÐµÐ½Ð° Ð¿Ð¾ ' + activeCompetitors.length + ' Ð°ÐºÑÐ¸Ð²Ð½ÑÐ¼ ÐºÐ¾Ð½ÐºÑÑÐµÐ½ÑÐ°Ð¼. Ð§ÑÐ¾Ð±Ñ Ð¾Ð±ÑÐ°Ð±Ð¾ÑÐ°ÑÑ Ð¿ÑÑÐ¼Ð¾ ÑÐµÐ¹ÑÐ°Ñ, Ð½Ð°Ð¿Ð¸ÑÐ¸ÑÐµ Claude Ð² ÑÐ°ÑÐµ: Â«Ð¾Ð±Ð½Ð¾Ð²Ð¸ Ð²ÑÐµÑ ÐºÐ¾Ð½ÐºÑÑÐµÐ½ÑÐ¾Ð²Â».');
+    })
+    .catch(function () {
+      alert('Ð§Ð°ÑÑÑ Ð·Ð°Ð¿ÑÐ¾ÑÐ¾Ð² Ð½Ðµ ÑÐ´Ð°Ð»Ð¾ÑÑ Ð¾ÑÐ¿ÑÐ°Ð²Ð¸ÑÑ, Ð¿Ð¾Ð¿ÑÐ¾Ð±ÑÐ¹ÑÐµ ÐµÑÑ ÑÐ°Ð·.');
+    })
+    .finally(function () {
+      if (btn) { btn.disabled = false; btn.textContent = 'â» ÐÐ°Ð¿ÑÐ¾ÑÐ¸ÑÑ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ Ð²ÑÐµÑ Ð°ÐºÑÐ¸Ð²Ð½ÑÑ'; }
+    });
+}
+\nfunction refreshEverything() {
   loadStockTables().then(function () { loadWbStock(); });
   loadJournal();
   loadCompetitors();
