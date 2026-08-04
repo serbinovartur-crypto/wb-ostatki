@@ -995,6 +995,7 @@ function closeWarehouseModal() {
 // при большом числе конкурентов.
 var COMPETITORS_MAX_HISTORY_DAYS = 14;
 var competitorsCache = [];
+var competitorsOrder = [];
 
 function noPhotoPlaceholder(el, text) {
   el.classList.add('noimg');
@@ -1005,10 +1006,29 @@ function noPhotoPlaceholder(el, text) {
 function loadCompetitors() {
   var listEl = document.getElementById('competitors-list');
   if (!listEl) return;
-  fetch(API_BASE + '/api/competitors')
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
+  Promise.all([
+    fetch(API_BASE + '/api/competitors').then(function (r) { return r.json(); }),
+    fetch(API_BASE + '/api/state/competitors_order').then(function (r) { return r.json(); }).catch(function () { return { value: [] }; })
+  ])
+    .then(function (results) {
+      var data = results[0];
+      var orderData = results[1];
       var competitors = (data && data.competitors) || [];
+      var order = (orderData && orderData.value) || [];
+      if (order && order.length) {
+        var byId = {};
+        competitors.forEach(function (c) { byId[c.id] = c; });
+        var ordered = [];
+        var used = {};
+        order.forEach(function (id) {
+          if (byId[id] && !used[id]) { ordered.push(byId[id]); used[id] = true; }
+        });
+        competitors.forEach(function (c) {
+          if (!used[c.id]) { ordered.push(c); used[c.id] = true; }
+        });
+        competitors = ordered;
+      }
+      competitorsOrder = competitors.map(function (c) { return c.id; });
       competitorsCache = competitors;
       if (!competitors.length) {
         listEl.innerHTML = '<div class="hint">Пока нет ни одного конкурента — добавьте ссылку на карточку выше.</div>';
@@ -1025,11 +1045,59 @@ function loadCompetitors() {
     });
 }
 
+function saveCompetitorsOrder() {
+  var listEl = document.getElementById('competitors-list');
+  if (!listEl) return;
+  var order = [];
+  for (var i = 0; i < listEl.children.length; i++) {
+    var id = listEl.children[i].dataset ? listEl.children[i].dataset.competitorId : null;
+    if (id) order.push(id);
+  }
+  competitorsOrder = order;
+  fetch(API_BASE + '/api/state/competitors_order', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify(order)
+  }).catch(function (e) { console.error('order save failed', e); });
+}
+
 function renderCompetitorTile(competitor) {
   var tile = document.createElement('div');
   var isActive = competitor.active !== false;
   tile.className = 'competitor-tile' + (isActive ? '' : ' inactive');
-  tile.addEventListener('click', function () { openCompetitorModal(competitor.id); });
+  tile.draggable = true;
+  tile.dataset.competitorId = competitor.id;
+  tile.style.cursor = 'grab';
+  tile.addEventListener('dragstart', function (e) {
+    if (e.target && e.target.closest && e.target.closest('input, button, a, label, select, textarea')) { e.preventDefault(); return; }
+    window.__draggedCompetitorTile = tile;
+    tile.style.opacity = '0.4';
+    tile.__wasDragging = false;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', competitor.id); } catch (err) {}
+    }
+  });
+  tile.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    var dragged = window.__draggedCompetitorTile;
+    if (!dragged || dragged === tile) return;
+    dragged.__wasDragging = true;
+    tile.__wasDragging = true;
+    var rect = tile.getBoundingClientRect();
+    var after = (e.clientX - rect.left) > rect.width / 2;
+    var parent = tile.parentNode;
+    if (!parent) return;
+    if (after) { parent.insertBefore(dragged, tile.nextSibling); } else { parent.insertBefore(dragged, tile); }
+  });
+  tile.addEventListener('drop', function (e) { e.preventDefault(); });
+  tile.addEventListener('dragend', function () {
+    tile.style.opacity = '';
+    window.__draggedCompetitorTile = null;
+    saveCompetitorsOrder();
+    setTimeout(function () { tile.__wasDragging = false; }, 50);
+  });
+  tile.addEventListener('click', function () { if (tile.__wasDragging) return; openCompetitorModal(competitor.id); });
 
   var photoHtml = competitor.photo
     ? '<img class="competitor-tile-photo" src="' + escapeAttr(competitor.photo) + '" alt="">'
