@@ -119,7 +119,7 @@
   <p>Актуальные остатки на складе</p>
 </header>
 <div class="tabs">
-  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="wb-stock" onclick="showTab('wb-stock')">Остатки на ВБ</button><button class="tab-btn" data-tab="journal" onclick="showTab('journal')">Журнал списаний</button><button class="tab-btn" data-tab="competitors" onclick="showTab('competitors')">Конкуренты</button>
+  <button class="tab-btn" data-tab="upakovannye" onclick="showTab('upakovannye')">Упакованные</button><button class="tab-btn" data-tab="neupakovannye" onclick="showTab('neupakovannye')">Неупакованные</button><button class="tab-btn active" data-tab="obshee" onclick="showTab('obshee')">Общее</button><button class="tab-btn" data-tab="wb-stock" onclick="showTab('wb-stock')">Остатки на ВБ</button><button class="tab-btn" data-tab="fbs-stock" onclick="showTab('fbs-stock')">Остатки по ФБС</button><button class="tab-btn" data-tab="journal" onclick="showTab('journal')">Журнал списаний</button><button class="tab-btn" data-tab="competitors" onclick="showTab('competitors')">Конкуренты</button>
 </div>
 <main>
     <section class="tab-panel" id="tab-upakovannye">
@@ -229,7 +229,34 @@
       </table>
       </div>
     </section>
-    <section class="tab-panel" id="tab-journal">
+    <section class="tab-panel" id="tab-fbs-stock">
+        <div class="section-total" id="fbs-stock-total">Загрузка данных…</div>
+        <div class="hint" id="fbs-stock-updated">Данные ещё не получены</div>
+        <div class="hint" id="fbs-stock-error" style="display:none; color:#b00020;"></div>
+        <div class="hint">Живой остаток со склада продавца (ФБС) — тянется напрямую с Wildberries, обновляется само каждые ~15 минут. Отметьте галочкой важные позиции — бот в Telegram напишет, когда остаток по ним опустится до порога или ниже.</div>
+        <div style="margin:10px 0 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <label style="font-size:13px;">Порог уведомления, шт: <input type="number" id="fbs-threshold-input" min="0" step="1" style="width:70px; padding:4px 6px;"></label>
+          <button type="button" class="wh-global-btn" onclick="saveFbsThreshold()">Сохранить порог</button>
+          <button type="button" class="wh-global-btn" onclick="loadFbsStock(true)">&#8635; Обновить сейчас</button>
+        </div>
+        <div class="table-wrap">
+        <table class="stock-table">
+          <thead>
+            <tr>
+              <th>Важно</th>
+              <th class="cell-photo">Фото</th>
+              <th class="cell-sku">Артикул</th>
+              <th class="cell-sku">Артикул продавца</th>
+              <th class="cell-name">Название</th>
+              <th>Размер</th>
+              <th class="cell-total">Остаток ФБС</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-fbs-stock"></tbody>
+        </table>
+        </div>
+      </section>
+      <section class="tab-panel" id="tab-journal">
       <div class="hint">История автоматических списаний: ФБС — когда поставка переходит в статус «в доставке»; ФБО — когда в приёмке на складе ВБ появляется/растёт колонка «Принято». Обновляется само каждые 5 минут.</div>
       <div class="table-wrap">
       <table class="stock-table">
@@ -1394,10 +1421,124 @@ function requestAllCompetitorsRefresh() {
     });
 }
 
-function refreshEverything() {
+// ---------------------------------------------------------------------------
+  // Остатки по ФБС (склад продавца) — живые данные с WB. Отдельно от "Остатки
+  // на ВБ" (там — склады самого Wildberries, ФБО). Порог уведомления и список
+  // отмеченных ("важных") артикулов хранятся на бэкенде (ключи
+  // fbs_watch_threshold и fbs_watch через общий /api/state/:key), потому что
+  // уведомления в Telegram шлёт сам сервер по расписанию — это работает даже
+  // когда сайт закрыт.
+  var fbsWatchState = {};
+  var fbsThreshold = 5;
+  
+  function loadFbsStock(forceRefresh) {
+      var totalEl = document.getElementById('fbs-stock-total');
+      var updatedEl = document.getElementById('fbs-stock-updated');
+      var errorEl = document.getElementById('fbs-stock-error');
+      var tbody = document.getElementById('tbody-fbs-stock');
+      if (!tbody) return;
+    
+      var refreshStep = forceRefresh
+            ? fetch(API_BASE + '/api/wb/fbs-stock/refresh', { method: 'POST', headers: { 'X-Api-Key': API_KEY } })
+            : Promise.resolve();
+    
+      refreshStep
+            .then(function () {
+                    return Promise.all([
+                              fetch(API_BASE + '/api/wb/fbs-stock').then(function (r) { return r.json(); }),
+                              fetch(API_BASE + '/api/state/fbs_watch').then(function (r) { return r.json(); }),
+                              fetch(API_BASE + '/api/state/fbs_watch_threshold').then(function (r) { return r.json(); })
+                            ]);
+            })
+            .then(function (results) {
+                    var stockData = results[0];
+                    fbsWatchState = (results[1] && results[1].value) || {};
+                    fbsThreshold = (results[2] && results[2].value != null) ? Number(results[2].value) : 5;
+                    var thresholdInput = document.getElementById('fbs-threshold-input');
+                    if (thresholdInput && document.activeElement !== thresholdInput) thresholdInput.value = fbsThreshold;
+              
+                    var rows = (stockData && stockData.rows) || [];
+                    if (stockData && stockData.error && !rows.length) {
+                              errorEl.textContent = 'Не удалось получить остатки ФБС от Wildberries: ' + stockData.error;
+                              errorEl.style.display = 'block';
+                    } else {
+                              errorEl.style.display = 'none';
+                    }
+              
+                    rows = rows.slice().sort(function (a, b) {
+                              return (a.title || '').localeCompare(b.title || '') || (a.techSize || '').localeCompare(b.techSize || '');
+                    });
+              
+                    tbody.innerHTML = '';
+                    var totalAll = 0;
+                    rows.forEach(function (r) {
+                              totalAll += Number(r.totalAmount) || 0;
+                              var key = r.nmID + '|' + r.techSize;
+                              var isWatched = !!fbsWatchState[key];
+                              var isLow = isWatched && Number(r.totalAmount) <= fbsThreshold;
+                              var tr = document.createElement('tr');
+                              if (isLow) tr.style.background = '#fdeaea';
+                              var photoHtml = r.photo
+                                          ? '<img src="' + escapeAttr(r.photo) + '" alt="" loading="lazy">'
+                                          : '<div class="noimg">нет фото</div>';
+                              tr.innerHTML =
+                                          '<td><input type="checkbox" ' + (isWatched ? 'checked' : '') + ' onchange="toggleFbsWatch(\'' + key + '\', this.checked)"></td>' +
+                                          '<td class="cell-photo">' + photoHtml + '</td>' +
+                                          '<td class="cell-sku">' + r.nmID + '</td>' +
+                                          '<td class="cell-sku">' + (r.vendorCode || '—') + '</td>' +
+                                          '<td class="cell-name">' + (r.title || '<span style="color:#aaa">нет данных</span>') + '</td>' +
+                                          '<td>' + (r.techSize || '—') + '</td>' +
+                                          '<td class="cell-total">' + r.totalAmount + '</td>';
+                              tbody.appendChild(tr);
+                    });
+              
+                    if (totalEl) totalEl.textContent = 'Позиций: ' + rows.length + ' · Суммарный остаток ФБС: ' + totalAll;
+                    if (updatedEl) {
+                              updatedEl.textContent = stockData && stockData.fetchedAt
+                                          ? 'Обновлено: ' + new Date(stockData.fetchedAt).toLocaleString('ru-RU')
+                                          : 'Данные ещё не получены';
+                    }
+            })
+            .catch(function (e) {
+                    console.error('Не удалось загрузить остатки ФБС', e);
+                    if (errorEl) {
+                              errorEl.textContent = 'Не удалось связаться с сервером';
+                              errorEl.style.display = 'block';
+                    }
+            });
+  }
+  
+  function toggleFbsWatch(key, isOn) {
+      var next = {};
+      Object.keys(fbsWatchState).forEach(function (k) { next[k] = fbsWatchState[k]; });
+      if (isOn) next[key] = true; else delete next[key];
+      fbsWatchState = next;
+      fetch(API_BASE + '/api/state/fbs_watch', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+            body: JSON.stringify(next)
+      }).catch(function (e) { console.error('Не удалось сохранить отметку', e); });
+  }
+  
+  function saveFbsThreshold() {
+      var input = document.getElementById('fbs-threshold-input');
+      var val = Math.max(0, Number(input.value) || 0);
+      input.value = val;
+      fbsThreshold = val;
+      fetch(API_BASE + '/api/state/fbs_watch_threshold', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+            body: JSON.stringify(val)
+      })
+            .then(function () { loadFbsStock(false); })
+            .catch(function (e) { console.error('Не удалось сохранить порог', e); });
+  }
+  
+  function refreshEverything() {
   loadStockTables().then(function () { loadWbStock(); });
   loadJournal();
   loadCompetitors();
+      loadFbsStock(false);
 }
 refreshEverything();
 setInterval(refreshEverything, 5 * 60 * 1000);
