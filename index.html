@@ -254,6 +254,7 @@
       <div class="table-wrap">
       <table class="stock-table" id="fbs-stock-table">
         <colgroup>
+          <col data-col="drag" style="width:28px;">
           <col data-col="watch" style="width:64px;">
           <col data-col="photo" style="width:76px;">
           <col data-col="sku" style="width:110px;">
@@ -263,6 +264,7 @@
         </colgroup>
         <thead>
           <tr>
+            <th class="cell-drag"></th>
             <th>Важно</th>
             <th class="cell-photo">Фото</th>
             <th class="cell-sku">Артикул</th>
@@ -1454,6 +1456,37 @@ var fbsRows = []; // сырые строки nmID+techSize с остатком �
 var fbsWarehouses = []; // [{ id, name, officeId, officeName }]
 var fbsActiveWarehouseId = null;
 var fbsColResizeInit = false;
+var fbsOrderSyncedForWarehouse = null; // id склада, для которого уже подтянули порядок с сервера в этой сессии
+
+// Стандартный порядок размеров одежды — не алфавитный (иначе "M" оказывается
+// раньше "S" и т.п.). Размеры вне списка уходят в конец по алфавиту.
+var FBS_SIZE_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', 'XXL', '3XL', 'XXXL', '4XL'];
+function fbsSizeRank(sz) {
+  var idx = FBS_SIZE_ORDER.indexOf(String(sz || '').toUpperCase());
+  return idx === -1 ? 999 : idx;
+}
+
+// Порядок артикулов, который вы сами выставили перетаскиванием (или кликом
+// по заголовку "Остаток на складе"), — свой для каждого склада, хранится
+// через тот же общий механизм order:<slug>, что и у остальных таблиц сайта
+// (localStorage — чтобы не "прыгало" при перерисовке, сервер — источник
+// правды и синхронизация между устройствами).
+function applyFbsCustomOrder(groups, whId) {
+  var slug = 'fbs-' + whId;
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem('stock-order-' + slug) || 'null'); } catch (e) { saved = null; }
+  if (!saved || !saved.length) return groups;
+  var pos = {};
+  saved.forEach(function (id, i) { pos[id] = i; });
+  var known = [];
+  var unknown = [];
+  groups.forEach(function (g) {
+    var id = String(g.nmID);
+    if (pos.hasOwnProperty(id)) known.push(g); else unknown.push(g);
+  });
+  known.sort(function (a, b) { return pos[String(a.nmID)] - pos[String(b.nmID)]; });
+  return known.concat(unknown);
+}
 
 var FBS_COL_WIDTHS_KEY = 'fbsColWidths_v1';
 function loadFbsColWidths() {
@@ -1641,8 +1674,13 @@ function renderFbsTable() {
   var groups = order.map(function (id) { return byNmId[id]; });
   groups.sort(function (a, b) { return (a.vendorCode || '').localeCompare(b.vendorCode || ''); });
   groups.forEach(function (g) {
-    g.sizes.sort(function (a, b) { return (a.techSize || '').localeCompare(b.techSize || ''); });
+    g.sizes.sort(function (a, b) {
+      var ra = fbsSizeRank(a.techSize), rb = fbsSizeRank(b.techSize);
+      if (ra !== rb) return ra - rb;
+      return (a.techSize || '').localeCompare(b.techSize || '');
+    });
   });
+  groups = applyFbsCustomOrder(groups, whId);
   fbsGroups = groups;
 
   tbody.innerHTML = '';
@@ -1652,6 +1690,7 @@ function renderFbsTable() {
     var allWatched = g.sizes.length > 0 && g.sizes.every(function (s) { return !!fbsWatchState[s.key]; });
     var anyLow = g.sizes.some(function (s) { return !!fbsWatchState[s.key] && s.amount <= fbsThreshold; });
     var tr = document.createElement('tr');
+    tr.dataset.id = String(g.nmID);
     if (anyLow) tr.style.background = '#fdeaea';
     var photoHtml = g.photo
       ? '<img src="' + escapeAttr(g.photo) + '" alt="" loading="lazy">'
@@ -1661,6 +1700,7 @@ function renderFbsTable() {
       return '<span class="fbs-size-chip" style="background:' + c.bg + '; color:' + c.fg + ';">' + (s.techSize || '—') + ': ' + s.amount + '</span>';
     }).join('');
     tr.innerHTML =
+      '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
       '<td><input type="checkbox" ' + (allWatched ? 'checked' : '') + ' onchange="toggleFbsWatchArticle(' + idx + ', this.checked)"></td>' +
       '<td class="cell-photo">' + photoHtml + '</td>' +
       '<td class="cell-sku">' + g.nmID + '</td>' +
@@ -1675,6 +1715,15 @@ function renderFbsTable() {
     var activeWh = fbsWarehouses.filter(function (w) { return w.id === whId; })[0];
     if (activeWh) whLabel = ' (' + activeWh.name + ')';
     totalEl.textContent = 'Артикулов: ' + groups.length + ' · Суммарный остаток на складе' + whLabel + ': ' + totalAll;
+  }
+
+  // slug должен быть выставлен ДО того, как пользователь потянет строку или
+  // кликнет по "Остаток на складе" — иначе общий saveOrder() из другого
+  // места сайта не будет знать, для какого склада сохранять порядок.
+  tbody.dataset.slug = 'fbs-' + whId;
+  if (fbsOrderSyncedForWarehouse !== whId) {
+    fbsOrderSyncedForWarehouse = whId;
+    loadOrder(tbody);
   }
 }
 
