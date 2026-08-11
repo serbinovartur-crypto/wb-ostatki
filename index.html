@@ -49,6 +49,17 @@
   .wh-global-btn { border:1px solid #d8d5cd; background:#fff; border-radius:20px; padding:8px 16px; cursor:pointer; margin-bottom:14px; font-size:13px; font-weight:600; display:inline-block; }
   .wh-global-btn:hover { background:#eceae3; }
   .wh-global-btn.has-disabled { border-color:#b00020; color:#b00020; }
+  #fbs-stock-table { table-layout: fixed; }
+  #fbs-stock-table th, #fbs-stock-table td { white-space: normal; overflow: hidden; text-overflow: ellipsis; }
+  #fbs-stock-table td.cell-sizes { text-align: left; }
+  .col-resizer { position:absolute; right:0; top:0; width:6px; height:100%; cursor:col-resize; z-index:2; }
+  .fbs-wh-tab { display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding:6px 12px; border-radius:10px; border:1px solid #d8d5cd; background:#f6f5f3; cursor:pointer; min-width:150px; font-size:13px; font-family:inherit; }
+  .fbs-wh-tab:hover { background:#eceae3; }
+  .fbs-wh-tab.active { background:#1b1b1b; color:#fff; border-color:#1b1b1b; }
+  .fbs-wh-tab.active:hover { background:#1b1b1b; }
+  .fbs-wh-office { font-size:11px; opacity:0.7; font-weight:400; margin-top:2px; }
+  .fbs-wh-office:hover { text-decoration: underline; }
+  .fbs-size-chip { display:inline-block; margin:2px 4px 2px 0; padding:2px 6px; border-radius:5px; font-size:12px; font-weight:600; }
   .wh-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:center; justify-content:center; }
   .wh-modal-overlay.open { display:flex; }
   .wh-modal { background:#fff; border-radius:10px; max-width:480px; width:92%; max-height:80vh; overflow:auto; padding:18px 20px; box-shadow:0 8px 30px rgba(0,0,0,.25); }
@@ -229,28 +240,35 @@
       </table>
       </div>
     </section>
-    <section class="tab-panel" id="tab-fbs-stock">
+<section class="tab-panel" id="tab-fbs-stock">
       <div class="section-total" id="fbs-stock-total">Загрузка данных…</div>
       <div class="hint" id="fbs-stock-updated">Данные ещё не получены</div>
       <div class="hint" id="fbs-stock-error" style="display:none; color:#b00020;"></div>
-      <div class="hint">Живой остаток со склада продавца (ФБС) — тянется напрямую с Wildberries по всем вашим складам ФБС (Технопарк, Антохин фф, Проспект Лихачева) и суммируется, обновляется само каждые ~15 минут. Отметьте галочкой важный артикул целиком — под наблюдение попадут все его размеры, но уведомление в Telegram придёт по каждому конкретному размеру отдельно, когда именно его остаток (не сумма по всем размерам) опустится до порога. Нажмите на строку, чтобы раскрыть остатки по размерам.</div>
+      <div class="hint">Живой остаток со склада продавца (ФБС) — тянется напрямую с Wildberries по каждому вашему складу отдельно (не суммируется между складами). У каждого склада своя вкладка ниже; новый склад, который вы создадите в личном кабинете WB, появится тут сам при следующем обновлении. Отметьте галочкой важный артикул на нужном складе — уведомление в Telegram придёт по каждому конкретному размеру именно на этом складе, когда его остаток опустится до порога. Цвет остатка по размеру: красный — 1 шт или меньше, жёлтый — 2–4 шт, зелёный — 5 шт и больше. Ширину колонок можно менять — потяните мышкой за правый край заголовка, значение запомнится в этом браузере.</div>
       <div style="margin:10px 0 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
         <label style="font-size:13px;">Порог уведомления, шт: <input type="number" id="fbs-threshold-input" min="0" step="1" style="width:70px; padding:4px 6px;"></label>
         <button type="button" class="wh-global-btn" onclick="saveFbsThreshold()">Сохранить порог</button>
         <button type="button" class="wh-global-btn" onclick="loadFbsStock(true)">&#8635; Обновить сейчас</button>
       </div>
+      <div id="fbs-warehouse-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;"></div>
       <div class="table-wrap">
-      <table class="stock-table">
+      <table class="stock-table" id="fbs-stock-table">
+        <colgroup>
+          <col data-col="watch" style="width:64px;">
+          <col data-col="photo" style="width:76px;">
+          <col data-col="sku" style="width:110px;">
+          <col data-col="vendor" style="width:150px;">
+          <col data-col="sizes" style="width:340px;">
+          <col data-col="total" style="width:110px;">
+        </colgroup>
         <thead>
           <tr>
-            <th></th>
             <th>Важно</th>
             <th class="cell-photo">Фото</th>
             <th class="cell-sku">Артикул</th>
             <th class="cell-sku">Артикул продавца</th>
-            <th class="cell-name">Название</th>
-            <th>Размеров</th>
-            <th class="cell-total">Остаток ФБС</th>
+            <th>Размеры</th>
+            <th class="cell-total">Остаток на складе</th>
           </tr>
         </thead>
         <tbody id="tbody-fbs-stock"></tbody>
@@ -1431,7 +1449,65 @@ function requestAllCompetitorsRefresh() {
   // когда сайт закрыт.
 var fbsWatchState = {};
 var fbsThreshold = 5;
-var fbsGroups = []; // сгруппированные по артикулу строки текущей отрисовки — нужны toggle-функциям
+var fbsGroups = []; // сгруппированные по артикулу строки текущей отрисовки (для активного склада) — нужны toggle-функциям
+var fbsRows = []; // сырые строки nmID+techSize с остатком по каждому складу (byWarehouse)
+var fbsWarehouses = []; // [{ id, name, officeId, officeName }]
+var fbsActiveWarehouseId = null;
+var fbsColResizeInit = false;
+
+var FBS_COL_WIDTHS_KEY = 'fbsColWidths_v1';
+function loadFbsColWidths() {
+  try { return JSON.parse(localStorage.getItem(FBS_COL_WIDTHS_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveFbsColWidths(widths) {
+  try { localStorage.setItem(FBS_COL_WIDTHS_KEY, JSON.stringify(widths)); } catch (e) {}
+}
+function applyFbsColWidths() {
+  var widths = loadFbsColWidths();
+  var cols = document.querySelectorAll('#fbs-stock-table colgroup col');
+  cols.forEach(function (col) {
+    var name = col.getAttribute('data-col');
+    if (widths[name]) col.style.width = widths[name] + 'px';
+  });
+}
+function initFbsColResize() {
+  var ths = document.querySelectorAll('#fbs-stock-table thead th');
+  var cols = document.querySelectorAll('#fbs-stock-table colgroup col');
+  ths.forEach(function (th, idx) {
+    if (th.querySelector('.col-resizer')) return;
+    var handle = document.createElement('span');
+    handle.className = 'col-resizer';
+    th.style.position = 'relative';
+    th.appendChild(handle);
+    handle.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var startX = e.clientX;
+      var col = cols[idx];
+      var startWidth = col.getBoundingClientRect().width || th.getBoundingClientRect().width;
+      function onMove(ev) {
+        var newWidth = Math.max(36, Math.round(startWidth + (ev.clientX - startX)));
+        col.style.width = newWidth + 'px';
+      }
+      function onUp() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        var widths = loadFbsColWidths();
+        var name = col.getAttribute('data-col');
+        widths[name] = parseInt(col.style.width, 10);
+        saveFbsColWidths(widths);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  });
+}
+
+function fbsSizeColor(amount) {
+  if (amount <= 1) return { bg: '#fdeaea', fg: '#b00020' };
+  if (amount < 5) return { bg: '#fff8e1', fg: '#8a6d00' };
+  return { bg: '#e6f4ea', fg: '#1e7e34' };
+}
 
 function loadFbsStock(forceRefresh) {
   var totalEl = document.getElementById('fbs-stock-total');
@@ -1459,77 +1535,23 @@ function loadFbsStock(forceRefresh) {
       var thresholdInput = document.getElementById('fbs-threshold-input');
       if (thresholdInput && document.activeElement !== thresholdInput) thresholdInput.value = fbsThreshold;
 
-      var rows = (stockData && stockData.rows) || [];
-      if (stockData && stockData.error && !rows.length) {
+      fbsRows = (stockData && stockData.rows) || [];
+      fbsWarehouses = (stockData && stockData.warehouses) || [];
+      if (stockData && stockData.error && !fbsRows.length) {
         errorEl.textContent = 'Не удалось получить остатки ФБС от Wildberries: ' + stockData.error;
         errorEl.style.display = 'block';
       } else {
         errorEl.style.display = 'none';
       }
 
-      // Группируем по артикулу (nmID) — на сайте один товар = одна строка,
-      // размеры внутри неё, а не отдельными строками таблицы. Отслеживание
-      // ("Важно") включается на весь артикул сразу, но алерт в Telegram по
-      // каждому размеру отдельно — это уже логика бэкенда, тут просто рендер.
-      var byNmId = {};
-      var order = [];
-      rows.forEach(function (r) {
-        if (!byNmId[r.nmID]) {
-          byNmId[r.nmID] = { nmID: r.nmID, vendorCode: r.vendorCode, title: r.title, photo: r.photo, sizes: [], totalAmount: 0 };
-          order.push(r.nmID);
-        }
-        var g = byNmId[r.nmID];
-        g.sizes.push({ techSize: r.techSize, totalAmount: Number(r.totalAmount) || 0, key: r.nmID + '|' + r.techSize });
-        g.totalAmount += Number(r.totalAmount) || 0;
-      });
-      var groups = order.map(function (id) { return byNmId[id]; });
-      groups.sort(function (a, b) { return (a.title || '').localeCompare(b.title || ''); });
-      groups.forEach(function (g) {
-        g.sizes.sort(function (a, b) { return (a.techSize || '').localeCompare(b.techSize || ''); });
-      });
-      fbsGroups = groups;
+      if (fbsActiveWarehouseId == null || !fbsWarehouses.some(function (w) { return w.id === fbsActiveWarehouseId; })) {
+        fbsActiveWarehouseId = fbsWarehouses.length ? fbsWarehouses[0].id : null;
+      }
 
-      tbody.innerHTML = '';
-      var totalAll = 0;
-      groups.forEach(function (g, idx) {
-        totalAll += g.totalAmount;
-        var allWatched = g.sizes.length > 0 && g.sizes.every(function (s) { return !!fbsWatchState[s.key]; });
-        var anyLow = g.sizes.some(function (s) { return !!fbsWatchState[s.key] && s.totalAmount <= fbsThreshold; });
-        var rowId = 'fbs-detail-' + idx;
+      renderFbsWarehouseTabs();
+      if (!fbsColResizeInit) { initFbsColResize(); applyFbsColWidths(); fbsColResizeInit = true; }
+      renderFbsTable();
 
-        var tr = document.createElement('tr');
-        tr.className = 'fbs-article-row';
-        if (anyLow) tr.style.background = '#fdeaea';
-        var photoHtml = g.photo
-          ? '<img src="' + escapeAttr(g.photo) + '" alt="" loading="lazy">'
-          : '<div class="noimg">нет фото</div>';
-        tr.innerHTML =
-          '<td style="cursor:pointer; text-align:center; color:#888;" onclick="toggleFbsArticleExpand(\'' + rowId + '\')"><span id="' + rowId + '-arrow">▶</span></td>' +
-          '<td><input type="checkbox" ' + (allWatched ? 'checked' : '') + ' onchange="toggleFbsWatchArticle(' + idx + ', this.checked)"></td>' +
-          '<td class="cell-photo">' + photoHtml + '</td>' +
-          '<td class="cell-sku">' + g.nmID + '</td>' +
-          '<td class="cell-sku">' + (g.vendorCode || '—') + '</td>' +
-          '<td class="cell-name" style="cursor:pointer;" onclick="toggleFbsArticleExpand(\'' + rowId + '\')">' + (g.title || '<span style="color:#aaa">нет данных</span>') + '</td>' +
-          '<td>' + g.sizes.length + '</td>' +
-          '<td class="cell-total">' + g.totalAmount + '</td>';
-        tbody.appendChild(tr);
-
-        var detailTr = document.createElement('tr');
-        detailTr.id = rowId;
-        detailTr.style.display = 'none';
-        var sizesHtml = g.sizes.map(function (s) {
-          var isWatched = !!fbsWatchState[s.key];
-          var isLow = isWatched && s.totalAmount <= fbsThreshold;
-          return '<div style="display:flex; justify-content:space-between; gap:16px; padding:4px 8px;' + (isLow ? ' background:#fdeaea;' : '') + '">' +
-            '<span>Размер ' + (s.techSize || '—') + '</span>' +
-            '<span><b>' + s.totalAmount + '</b> шт' + (isWatched ? ' · под наблюдением' : '') + '</span>' +
-            '</div>';
-        }).join('');
-        detailTr.innerHTML = '<td colspan="8" style="background:#fafafa; padding:6px 0;">' + sizesHtml + '</td>';
-        tbody.appendChild(detailTr);
-      });
-
-      if (totalEl) totalEl.textContent = 'Артикулов: ' + groups.length + ' · Суммарный остаток ФБС: ' + totalAll;
       if (updatedEl) {
         updatedEl.textContent = stockData && stockData.fetchedAt
           ? 'Обновлено: ' + new Date(stockData.fetchedAt).toLocaleString('ru-RU')
@@ -1545,13 +1567,115 @@ function loadFbsStock(forceRefresh) {
     });
 }
 
-function toggleFbsArticleExpand(rowId) {
-  var row = document.getElementById(rowId);
-  var arrow = document.getElementById(rowId + '-arrow');
-  if (!row) return;
-  var isOpen = row.style.display !== 'none';
-  row.style.display = isOpen ? 'none' : 'table-row';
-  if (arrow) arrow.textContent = isOpen ? '▶' : '▼';
+// Подвкладки по складам продавца — по одной на каждый склад из ответа
+// бэкенда, новые склады появляются тут сами при следующем обновлении.
+// Под именем склада — привязанный СЦ (если WB его отдал или вы указали
+// вручную); клик по строке СЦ позволяет вписать/поправить название.
+function renderFbsWarehouseTabs() {
+  var container = document.getElementById('fbs-warehouse-tabs');
+  if (!container) return;
+  container.innerHTML = '';
+  fbsWarehouses.forEach(function (w) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'fbs-wh-tab' + (w.id === fbsActiveWarehouseId ? ' active' : '');
+    btn.onclick = function () {
+      fbsActiveWarehouseId = w.id;
+      renderFbsWarehouseTabs();
+      renderFbsTable();
+    };
+
+    var nameDiv = document.createElement('div');
+    nameDiv.textContent = w.name;
+    btn.appendChild(nameDiv);
+
+    var officeDiv = document.createElement('div');
+    officeDiv.className = 'fbs-wh-office';
+    officeDiv.textContent = w.officeName ? ('СЦ: ' + w.officeName) : 'СЦ не определён (нажмите, чтобы указать)';
+    officeDiv.onclick = function (e) {
+      e.stopPropagation();
+      var val = window.prompt('СЦ (сортировочный центр) для склада "' + w.name + '":', w.officeName || '');
+      if (val === null) return;
+      fetch(API_BASE + '/api/state/fbs_warehouse_office_override')
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          var overrides = (res && res.value) || {};
+          overrides[String(w.id)] = val;
+          return fetch(API_BASE + '/api/state/fbs_warehouse_office_override', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+            body: JSON.stringify(overrides)
+          });
+        })
+        .then(function () { loadFbsStock(false); })
+        .catch(function (e) { console.error('Не удалось сохранить СЦ', e); });
+    };
+    btn.appendChild(officeDiv);
+
+    container.appendChild(btn);
+  });
+}
+
+// Рендерит таблицу для АКТИВНОГО склада: группирует строки по артикулу,
+// остаток по каждому размеру берётся конкретно с этого склада (fbsRows[].byWarehouse),
+// не суммируется с другими складами.
+function renderFbsTable() {
+  var tbody = document.getElementById('tbody-fbs-stock');
+  var totalEl = document.getElementById('fbs-stock-total');
+  if (!tbody) return;
+  var whId = fbsActiveWarehouseId;
+  var whIdStr = String(whId);
+
+  var byNmId = {};
+  var order = [];
+  fbsRows.forEach(function (r) {
+    if (!byNmId[r.nmID]) {
+      byNmId[r.nmID] = { nmID: r.nmID, vendorCode: r.vendorCode, photo: r.photo, sizes: [], totalAmount: 0 };
+      order.push(r.nmID);
+    }
+    var g = byNmId[r.nmID];
+    var amount = (r.byWarehouse && r.byWarehouse[whIdStr] != null) ? Number(r.byWarehouse[whIdStr]) : 0;
+    g.sizes.push({ techSize: r.techSize, amount: amount, key: r.nmID + '|' + r.techSize + '|' + whId });
+    g.totalAmount += amount;
+  });
+  var groups = order.map(function (id) { return byNmId[id]; });
+  groups.sort(function (a, b) { return (a.vendorCode || '').localeCompare(b.vendorCode || ''); });
+  groups.forEach(function (g) {
+    g.sizes.sort(function (a, b) { return (a.techSize || '').localeCompare(b.techSize || ''); });
+  });
+  fbsGroups = groups;
+
+  tbody.innerHTML = '';
+  var totalAll = 0;
+  groups.forEach(function (g, idx) {
+    totalAll += g.totalAmount;
+    var allWatched = g.sizes.length > 0 && g.sizes.every(function (s) { return !!fbsWatchState[s.key]; });
+    var anyLow = g.sizes.some(function (s) { return !!fbsWatchState[s.key] && s.amount <= fbsThreshold; });
+    var tr = document.createElement('tr');
+    if (anyLow) tr.style.background = '#fdeaea';
+    var photoHtml = g.photo
+      ? '<img src="' + escapeAttr(g.photo) + '" alt="" loading="lazy">'
+      : '<div class="noimg">нет фото</div>';
+    var sizesHtml = g.sizes.map(function (s) {
+      var c = fbsSizeColor(s.amount);
+      return '<span class="fbs-size-chip" style="background:' + c.bg + '; color:' + c.fg + ';">' + (s.techSize || '—') + ': ' + s.amount + '</span>';
+    }).join('');
+    tr.innerHTML =
+      '<td><input type="checkbox" ' + (allWatched ? 'checked' : '') + ' onchange="toggleFbsWatchArticle(' + idx + ', this.checked)"></td>' +
+      '<td class="cell-photo">' + photoHtml + '</td>' +
+      '<td class="cell-sku">' + g.nmID + '</td>' +
+      '<td class="cell-sku">' + (g.vendorCode || '—') + '</td>' +
+      '<td class="cell-sizes">' + sizesHtml + '</td>' +
+      '<td class="cell-total">' + g.totalAmount + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  if (totalEl) {
+    var whLabel = '';
+    var activeWh = fbsWarehouses.filter(function (w) { return w.id === whId; })[0];
+    if (activeWh) whLabel = ' (' + activeWh.name + ')';
+    totalEl.textContent = 'Артикулов: ' + groups.length + ' · Суммарный остаток на складе' + whLabel + ': ' + totalAll;
+  }
 }
 
 function toggleFbsWatchArticle(idx, isOn) {
@@ -1568,9 +1692,10 @@ function toggleFbsWatchArticle(idx, isOn) {
     headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
     body: JSON.stringify(next)
   })
-    .then(function () { loadFbsStock(false); })
+    .then(function () { renderFbsTable(); })
     .catch(function (e) { console.error('Не удалось сохранить отметку', e); });
 }
+
   function saveFbsThreshold() {
       var input = document.getElementById('fbs-threshold-input');
       var val = Math.max(0, Number(input.value) || 0);
