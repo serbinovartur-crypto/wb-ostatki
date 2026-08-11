@@ -1461,8 +1461,15 @@ var fbsOrderSyncedForWarehouse = null; // id склада, для которог
 // Стандартный порядок размеров одежды — не алфавитный (иначе "M" оказывается
 // раньше "S" и т.п.). Размеры вне списка уходят в конец по алфавиту.
 var FBS_SIZE_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', 'XXL', '3XL', 'XXXL', '4XL'];
+// На WB иногда размер вбит русской буквой, похожей на латинскую (например
+// кириллическая "М" вместо латинской "M") — визуально не отличить, но
+// строкового совпадения с FBS_SIZE_ORDER не будет. Нормализуем такие символы.
+var FBS_CYRILLIC_TO_LATIN = { 'А': 'A', 'В': 'B', 'С': 'C', 'Е': 'E', 'Х': 'X', 'М': 'M', 'К': 'K', 'Н': 'H', 'О': 'O', 'Р': 'P', 'Т': 'T', 'У': 'Y' };
+function fbsNormalizeSize(sz) {
+  return String(sz || '').toUpperCase().replace(/./g, function (ch) { return FBS_CYRILLIC_TO_LATIN[ch] || ch; });
+}
 function fbsSizeRank(sz) {
-  var idx = FBS_SIZE_ORDER.indexOf(String(sz || '').toUpperCase());
+  var idx = FBS_SIZE_ORDER.indexOf(fbsNormalizeSize(sz));
   return idx === -1 ? 999 : idx;
 }
 
