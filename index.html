@@ -227,6 +227,11 @@
             <th class="cell-sku">Артикул</th>
             <th class="cell-sku">Артикул продавца</th>
             <th class="cell-name">Название</th>
+            <th>S</th>
+            <th>M</th>
+            <th>L</th>
+            <th>XL</th>
+            <th>XXL</th>
             <th>На складах ВБ</th>
             <th>В пути к покупателю</th>
             <th>Возврат в пути</th>
@@ -236,7 +241,7 @@
           </tr>
         </thead>
         <tbody id="tbody-wb-stock" data-slug="wb-stock"></tbody>
-      <tfoot><tr class="total-row"><td colspan="10" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
+      <tfoot><tr class="total-row"><td colspan="15" style="text-align:right;">Итого по вкладке:</td><td class="tab-cost-total">—</td></tr></tfoot>
       </table>
       </div>
     </section>
@@ -787,6 +792,19 @@ function applyCustomOrderWithinGroup(items, savedOrder) {
   return known.concat(unknown);
 }
 
+// WB иногда кладёт в techSize кириллические буквы, визуально неотличимые от
+// латинских (например, кириллическая "М" вместо латинской "M"), и пишет
+// "2XL" вместо нашего "XXL" — та же поправка, что и на бэкенде (server.js),
+// чтобы разбивка по размерам не теряла эти позиции.
+var WB_CYRILLIC_LOOKALIKES = { 'М': 'M', 'Х': 'X', 'А': 'A', 'С': 'C', 'Е': 'E', 'О': 'O' };
+function normalizeWbTechSize(raw) {
+  if (!raw) return null;
+  var up = String(raw).trim().toUpperCase();
+  up = up.split('').map(function(ch) { return WB_CYRILLIC_LOOKALIKES[ch] || ch; }).join('');
+  if (up === '2XL') up = 'XXL';
+  return OUR_SIZES.indexOf(up) !== -1 ? up : null;
+}
+
 function renderWbStock(stockData, cardsData) {
   var tbody = document.getElementById('tbody-wb-stock');
   var updatedEl = document.getElementById('wb-stock-updated');
@@ -802,6 +820,20 @@ function renderWbStock(stockData, cardsData) {
   } else {
     errorEl.style.display = 'none';
   }
+
+  // Карточки товаров с самого ВБ (артикул продавца, название, фото) — нужны
+  // для строк, которых нет в нашем собственном списке товаров на сайте.
+  // Тут же строим chrtID -> размер, чтобы разбить остаток по размерам:
+  // сырые строки остатков несут только chrtID, а конкретный techSize известен
+  // только из карточки товара.
+  var wbCards = {};
+  var chrtSizeIndex = {};
+  ((cardsData && cardsData.cards) || []).forEach(function(c) {
+    wbCards[String(c.nmID)] = c;
+    (c.sizes || []).forEach(function(s) {
+      chrtSizeIndex[String(s.chrtID)] = normalizeWbTechSize(s.techSize);
+    });
+  });
 
   // warehousesByNm — разбивка по конкретным складам (для окошка "Склады"),
   // считаем по ВСЕМ складам независимо от того, отключены они пользователем
@@ -820,20 +852,15 @@ function renderWbStock(stockData, cardsData) {
     warehousesByNm[nm][whId].toClient += Number(r.inWayToClient) || 0;
     warehousesByNm[nm][whId].fromClient += Number(r.inWayFromClient) || 0;
 
-    if (!byNm[nm]) byNm[nm] = { qty: 0, toClient: 0, fromClient: 0 };
+    if (!byNm[nm]) byNm[nm] = { qty: 0, toClient: 0, fromClient: 0, sizes: emptySizes() };
     if (disabledWarehouses.has(whId)) return; // склад отключён пользователем — не считаем
     byNm[nm].qty += Number(r.quantity) || 0;
     byNm[nm].toClient += Number(r.inWayToClient) || 0;
     byNm[nm].fromClient += Number(r.inWayFromClient) || 0;
+    var sizeKey = chrtSizeIndex[String(r.chrtId)];
+    if (sizeKey) byNm[nm].sizes[sizeKey] += Number(r.quantity) || 0;
   });
   window.__warehousesByNm = warehousesByNm; // нужно openWarehouseModal-у
-
-  // Карточки товаров с самого ВБ (артикул продавца, название, фото) — нужны
-  // для строк, которых нет в нашем собственном списке товаров на сайте.
-  var wbCards = {};
-  ((cardsData && cardsData.cards) || []).forEach(function(c) {
-    wbCards[String(c.nmID)] = c;
-  });
 
   var siteInfo = buildSkuInfoMap();
   var list = Object.keys(byNm).map(function(nm) {
@@ -848,7 +875,8 @@ function renderWbStock(stockData, cardsData) {
       hasWbCard: !!wbCard,
       qty: byNm[nm].qty,
       toClient: byNm[nm].toClient,
-      fromClient: byNm[nm].fromClient
+      fromClient: byNm[nm].fromClient,
+      sizes: byNm[nm].sizes
     };
   });
 
@@ -899,12 +927,14 @@ function renderWbStock(stockData, cardsData) {
     // нашем списке, ключа пока не существует — стоимость будет 0, пока
     // пользователь не впишет её сам прямо в этой таблице.
     var costKey = item.name || item.vendorCode || item.nm;
+    var sizeCells = OUR_SIZES.map(function (k) { return '<td>' + (Number(item.sizes[k]) || 0) + '</td>'; }).join('');
     tr.innerHTML =
       '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
       '<td class="cell-photo">' + photoHtml + '</td>' +
       '<td class="cell-sku">' + item.nm + '</td>' +
       '<td class="cell-sku">' + item.vendorCode + '</td>' +
       '<td class="cell-name">' + nameHtml + '</td>' +
+      sizeCells +
       '<td>' + item.qty + '</td>' +
       '<td>' + item.toClient + '</td>' +
       '<td>' + item.fromClient + '</td>' +
@@ -919,7 +949,7 @@ function renderWbStock(stockData, cardsData) {
     if (!items.length) return;
     var headerRow = document.createElement('tr');
     headerRow.className = 'wb-category-row';
-    headerRow.innerHTML = '<td colspan="11">' + cat.title + '</td>';
+    headerRow.innerHTML = '<td colspan="16">' + cat.title + '</td>';
     tbody.appendChild(headerRow);
     items.forEach(renderRow);
   });
@@ -1705,7 +1735,7 @@ function renderFbsTable() {
     var sizesHtml = g.sizes.map(function (s) {
       var c = fbsSizeColor(s.amount);
       return '<span class="fbs-size-chip" style="background:' + c.bg + '; color:' + c.fg + ';">' + (s.techSize || '—') + ': ' + s.amount + '</span>';
-    }).join('');
+   }).join('');
     tr.innerHTML =
       '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
       '<td><input type="checkbox" ' + (allWatched ? 'checked' : '') + ' onchange="toggleFbsWatchArticle(' + idx + ', this.checked)"></td>' +
@@ -1752,25 +1782,25 @@ function toggleFbsWatchArticle(idx, isOn) {
     .catch(function (e) { console.error('Не удалось сохранить отметку', e); });
 }
 
-  function saveFbsThreshold() {
-      var input = document.getElementById('fbs-threshold-input');
-      var val = Math.max(0, Number(input.value) || 0);
-      input.value = val;
-      fbsThreshold = val;
-      fetch(API_BASE + '/api/state/fbs_watch_threshold', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
-            body: JSON.stringify(val)
-      })
-            .then(function () { loadFbsStock(false); })
-            .catch(function (e) { console.error('Не удалось сохранить порог', e); });
-  }
-  
-  function refreshEverything() {
+function saveFbsThreshold() {
+  var input = document.getElementById('fbs-threshold-input');
+  var val = Math.max(0, Number(input.value) || 0);
+  input.value = val;
+  fbsThreshold = val;
+  fetch(API_BASE + '/api/state/fbs_watch_threshold', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify(val)
+  })
+    .then(function () { loadFbsStock(false); })
+    .catch(function (e) { console.error('Не удалось сохранить порог', e); });
+}
+
+function refreshEverything() {
   loadStockTables().then(function () { loadWbStock(); });
   loadJournal();
   loadCompetitors();
-      loadFbsStock(false);
+  loadFbsStock(false);
 }
 refreshEverything();
 setInterval(refreshEverything, 5 * 60 * 1000);
