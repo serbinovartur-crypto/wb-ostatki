@@ -632,7 +632,11 @@ function renderSizeTable(slug, sizesMap, catalog) {
     var photoHtml = item.photo
       ? '<img src="' + item.photo + '" alt="' + escapeAttr(item.name) + '" loading="lazy">'
       : '<div class="noimg">нет фото</div>';
-    var sizeCells = OUR_SIZES.map(function (k) { return '<td>' + (Number(item.sizes[k]) || 0) + '</td>'; }).join('');
+    var hasSizeInfo = item.availableSizes && Object.keys(item.availableSizes).length > 0;
+    var sizeCells = OUR_SIZES.map(function (k) {
+      if (hasSizeInfo && !item.availableSizes[k]) return '<td></td>';
+      return '<td>' + (Number(item.sizes[k]) || 0) + '</td>';
+    }).join('');
     tr.innerHTML =
       '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
       '<td class="cell-photo">' + photoHtml + '</td>' +
@@ -866,6 +870,14 @@ function renderWbStock(stockData, cardsData) {
   var list = Object.keys(byNm).map(function(nm) {
     var site = siteInfo[nm] || null;
     var wbCard = wbCards[nm] || null;
+    var wbCard = wbCards[nm] || null;
+    var availSizes = {};
+    if (wbCard && wbCard.sizes) {
+      wbCard.sizes.forEach(function (s) {
+        var sz = normalizeWbTechSize(s.techSize);
+        if (sz) availSizes[sz] = true;
+      });
+    }
     return {
       nm: nm,
       vendorCode: wbCard && wbCard.vendorCode ? wbCard.vendorCode : '—',
@@ -877,6 +889,8 @@ function renderWbStock(stockData, cardsData) {
       toClient: byNm[nm].toClient,
       fromClient: byNm[nm].fromClient,
       sizes: byNm[nm].sizes
+,
+      availableSizes: availSizes
     };
   });
 
@@ -927,7 +941,11 @@ function renderWbStock(stockData, cardsData) {
     // нашем списке, ключа пока не существует — стоимость будет 0, пока
     // пользователь не впишет её сам прямо в этой таблице.
     var costKey = item.name || item.vendorCode || item.nm;
-    var sizeCells = OUR_SIZES.map(function (k) { return '<td>' + (Number(item.sizes[k]) || 0) + '</td>'; }).join('');
+    var hasSizeInfo = item.availableSizes && Object.keys(item.availableSizes).length > 0;
+    var sizeCells = OUR_SIZES.map(function (k) {
+      if (hasSizeInfo && !item.availableSizes[k]) return '<td></td>';
+      return '<td>' + (Number(item.sizes[k]) || 0) + '</td>';
+    }).join('');
     tr.innerHTML =
       '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
       '<td class="cell-photo">' + photoHtml + '</td>' +
