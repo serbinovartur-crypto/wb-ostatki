@@ -75,6 +75,8 @@
   .add-competitor-form input { border:1px solid #d8d5cd; border-radius:8px; padding:9px 12px; font-size:13px; font-family:inherit; }
   .add-competitor-form input[name="url"] { flex:1; min-width:280px; }
   .add-competitor-form input[name="name"] { width:220px; }
+  .add-competitor-form select { border:1px solid #d8d5cd; border-radius:8px; padding:9px 12px; font-size:13px; font-family:inherit; }
+  .competitor-category-header { width:100%; font-weight:700; font-size:13px; color:#555; margin:10px 0 2px; }
 
   .competitor-grid { display:flex; flex-wrap:wrap; gap:14px; }
   .competitor-tile { width:170px; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); overflow:hidden; cursor:pointer; position:relative; transition:box-shadow .15s, transform .15s; }
@@ -95,6 +97,8 @@
   .competitor-tile-remove:hover { background:#fff; }
   .competitor-tile-refresh { position:absolute; top:6px; left:6px; width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.92); border:1px solid #e2e0da; font-size:12px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2; }
   .competitor-tile-refresh:hover { background:#fff; }
+  .competitor-tile-category { margin-top:6px; }
+  .competitor-tile-category select { width:100%; font-size:11px; padding:3px 4px; border-radius:6px; border:1px solid #d8d5cd; background:#fff; }
   .competitor-tile.inactive { opacity:.45; filter:grayscale(65%); }
   .competitor-tile-active-toggle { display:flex; align-items:center; gap:5px; margin-top:7px; font-size:11px; color:#777; cursor:pointer; user-select:none; }
   .competitor-tile-active-toggle input { cursor:pointer; margin:0; }
@@ -308,6 +312,7 @@
       <form class="add-competitor-form" onsubmit="return addCompetitor(event)">
         <input type="text" name="url" placeholder="Ссылка на карточку конкурента (wildberries.ru/catalog/.../detail.aspx)" required>
         <input type="text" name="name" placeholder="Название (необязательно)">
+        <select name="category"><option value="shirts">Рубашки</option><option value="hoodies">Худи</option><option value="other">Прочее</option></select>
         <button type="submit" class="wh-global-btn">+ Добавить конкурента</button>
       </form>
       <button type="button" id="competitors-refresh-all-btn" class="wh-global-btn" onclick="requestAllCompetitorsRefresh()">&#8635; Запросить обновление всех активных</button>
@@ -1092,6 +1097,11 @@ function closeWarehouseModal() {
 var COMPETITORS_MAX_HISTORY_DAYS = 14;
 var competitorsCache = [];
 var competitorsOrder = [];
+  var COMPETITOR_CATEGORIES = [
+    { value: 'shirts', label: 'Рубашки' },
+    { value: 'hoodies', label: 'Худи' },
+    { value: 'other', label: 'Прочее' }
+    ];
 
 function noPhotoPlaceholder(el, text) {
   el.classList.add('noimg');
@@ -1130,9 +1140,24 @@ function loadCompetitors() {
         listEl.innerHTML = '<div class="hint">Пока нет ни одного конкурента — добавьте ссылку на карточку выше.</div>';
         return;
       }
-      listEl.innerHTML = '';
+listEl.innerHTML = '';
+      var groups = {};
+      COMPETITOR_CATEGORIES.forEach(function (cat) { groups[cat.value] = []; });
       competitors.forEach(function (c) {
-        listEl.appendChild(renderCompetitorTile(c));
+        var cat = c.category || 'shirts';
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push(c);
+      });
+      COMPETITOR_CATEGORIES.forEach(function (cat) {
+        var items = groups[cat.value];
+        if (!items || !items.length) return;
+        var header = document.createElement('div');
+        header.className = 'competitor-category-header';
+        header.textContent = cat.label;
+        listEl.appendChild(header);
+        items.forEach(function (c) {
+          listEl.appendChild(renderCompetitorTile(c));
+        });
       });
     })
     .catch(function (e) {
@@ -1140,6 +1165,14 @@ function loadCompetitors() {
       listEl.innerHTML = '<div class="hint" style="color:#b00020;">Не удалось связаться с сервером</div>';
     });
 }
+
+  function changeCompetitorCategory(id, category) {
+    fetch(API_BASE + '/api/competitors/' + id + '/category', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+      body: JSON.stringify({ category: category })
+    }).then(function () { loadCompetitors(); }).catch(function (e) { console.error('category update failed', e); });
+  }
 
 function saveCompetitorsOrder() {
   var listEl = document.getElementById('competitors-list');
@@ -1210,6 +1243,10 @@ function renderCompetitorTile(competitor) {
     : '<span class="competitor-tile-matches zero">нет данных</span>';
   var dateHtml = lastScan ? '<span class="competitor-tile-date">' + lastScan.day.slice(5) + '</span>' : '';
   var displayName = competitor.wbTitle || competitor.name;
+  var currentCategory = competitor.category || 'shirts';
+  var categoryOptionsHtml = COMPETITOR_CATEGORIES.map(function (c) {
+    return '<option value="' + c.value + '"' + (c.value === currentCategory ? ' selected' : '') + '>' + c.label + '</option>';
+  }).join('');
 
   tile.innerHTML =
     '<button class="competitor-tile-refresh" type="button" title="Запросить обновление">&#8635;</button>' +
@@ -1220,6 +1257,7 @@ function renderCompetitorTile(competitor) {
       '<div class="competitor-tile-meta">арт. ' + competitor.nmID + '</div>' +
       '<div class="competitor-tile-summary">' + matchesHtml + dateHtml + '</div>' +
       '<label class="competitor-tile-active-toggle"><input type="checkbox" class="competitor-active-checkbox"' + (isActive ? ' checked' : '') + '> активен</label>' +
+    '<div class="competitor-tile-category" onclick="event.stopPropagation()"><select>' + categoryOptionsHtml + '</select></div>' +
     '</div>';
 
   tile.querySelector('.competitor-tile-remove').addEventListener('click', function (evt) {
@@ -1235,6 +1273,10 @@ function renderCompetitorTile(competitor) {
   });
   tile.querySelector('.competitor-active-checkbox').addEventListener('change', function () {
     toggleCompetitorActive(competitor.id, this);
+  });
+  tile.querySelector('.competitor-tile-category select').addEventListener('change', function (evt) {
+        evt.stopPropagation();
+        changeCompetitorCategory(competitor.id, this.value);
   });
 
   return tile;
@@ -1412,12 +1454,13 @@ function addCompetitor(evt) {
   var form = evt.target;
   var url = form.url.value.trim();
   var name = form.name.value.trim();
+  var category = form.category ? form.category.value : 'shirts';
   var errorEl = document.getElementById('competitors-error');
   errorEl.style.display = 'none';
   fetch(API_BASE + '/api/competitors', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
-    body: JSON.stringify({ url: url, name: name })
+              body: JSON.stringify({ url: url, name: name, category: category })
   })
     .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
     .then(function (res) {
