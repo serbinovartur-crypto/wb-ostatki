@@ -312,7 +312,7 @@
       <form class="add-competitor-form" onsubmit="return addCompetitor(event)">
         <input type="text" name="url" placeholder="Ссылка на карточку конкурента (wildberries.ru/catalog/.../detail.aspx)" required>
         <input type="text" name="name" placeholder="Название (необязательно)">
-        <select name="category"><option value="shirts">Рубашки</option><option value="hoodies">Худи</option><option value="other">Прочее</option></select>
+        <select name="category"><option value="shirts">Рубашки</option><option value="hoodies">Худи</option><option value="gloves">Перчатки</option><option value="other">Прочее</option></select>
         <button type="submit" class="wh-global-btn">+ Добавить конкурента</button>
       </form>
       <button type="button" id="competitors-refresh-all-btn" class="wh-global-btn" onclick="requestAllCompetitorsRefresh()">&#8635; Запросить обновление всех активных</button>
@@ -568,6 +568,14 @@ loadCosts();
 // они остаются здесь, в коде страницы (а не в БД), а цифры по размерам
 // подтягиваются с сервера.
 var OUR_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
+// Перчатки в карточках WB идут числовыми размерами (11, 11,5, 12, 12,5, 13) — для них
+// во вкладке "Остатки на ВБ" под заголовком категории показываем свою шапку размеров.
+var GLOVE_SIZES = ['11', '11.5', '12', '12.5', '13'];
+function normalizeGloveSize(raw) {
+  if (raw == null) return null;
+  var v = String(raw).trim().replace(',', '.');
+  return GLOVE_SIZES.indexOf(v) !== -1 ? v : null;
+}
 var PRODUCT_CATALOG = [
   { name: "Голубая полоска, кор. рукав", photo: "image1.jpg", skus: "374082605, 1290477757" },
   { name: "Сине-бело-коричневая, кор. рукав", photo: "image2.jpg", skus: "409952307" },
@@ -768,12 +776,14 @@ var WB_CATEGORIES = [
   { key: 'shirts', title: 'Рубашки', test: function(n) { return n.indexOf('рубашк') !== -1; } },
   { key: 'hoodies', title: 'Худи и зип-худи', test: function(n) { return n.indexOf('худи') !== -1; } },
   { key: 'suits', title: 'Костюмы', test: function(n) { return n.indexOf('костюм') !== -1; } },
+  { key: 'gloves', title: 'Перчатки', test: function(n) { return n.indexOf('перчатк') !== -1; } },
   { key: 'other', title: 'Другое', test: function() { return true; } }
 ];
 
 function categorizeWbItem(item) {
   var n = (item.name || '').toLowerCase();
   if (n.indexOf('костюм') !== -1) return 'suits';
+  if (n.indexOf('перчатк') !== -1) return 'gloves';
   if (n.indexOf('худи') !== -1) return 'hoodies';
   if (n.indexOf('рубашк') !== -1) return 'shirts';
   // Наши собственные товары на сайте называются по цвету/узору, без слова
@@ -837,10 +847,12 @@ function renderWbStock(stockData, cardsData) {
   // только из карточки товара.
   var wbCards = {};
   var chrtSizeIndex = {};
+  var chrtGloveIndex = {};
   ((cardsData && cardsData.cards) || []).forEach(function(c) {
     wbCards[String(c.nmID)] = c;
     (c.sizes || []).forEach(function(s) {
       chrtSizeIndex[String(s.chrtID)] = normalizeWbTechSize(s.techSize);
+      chrtGloveIndex[String(s.chrtID)] = normalizeGloveSize(s.techSize);
     });
   });
 
@@ -861,13 +873,15 @@ function renderWbStock(stockData, cardsData) {
     warehousesByNm[nm][whId].toClient += Number(r.inWayToClient) || 0;
     warehousesByNm[nm][whId].fromClient += Number(r.inWayFromClient) || 0;
 
-    if (!byNm[nm]) byNm[nm] = { qty: 0, toClient: 0, fromClient: 0, sizes: emptySizes() };
+    if (!byNm[nm]) byNm[nm] = { qty: 0, toClient: 0, fromClient: 0, sizes: emptySizes(), gloveSizes: {} };
     if (disabledWarehouses.has(whId)) return; // склад отключён пользователем — не считаем
     byNm[nm].qty += Number(r.quantity) || 0;
     byNm[nm].toClient += Number(r.inWayToClient) || 0;
     byNm[nm].fromClient += Number(r.inWayFromClient) || 0;
     var sizeKey = chrtSizeIndex[String(r.chrtId)];
     if (sizeKey) byNm[nm].sizes[sizeKey] += Number(r.quantity) || 0;
+    var gloveKey = chrtGloveIndex[String(r.chrtId)];
+    if (gloveKey) byNm[nm].gloveSizes[gloveKey] = (byNm[nm].gloveSizes[gloveKey] || 0) + (Number(r.quantity) || 0);
   });
   window.__warehousesByNm = warehousesByNm; // нужно openWarehouseModal-у
 
@@ -877,10 +891,13 @@ function renderWbStock(stockData, cardsData) {
     var wbCard = wbCards[nm] || null;
     var wbCard = wbCards[nm] || null;
     var availSizes = {};
+    var availGloveSizes = {};
     if (wbCard && wbCard.sizes) {
       wbCard.sizes.forEach(function (s) {
         var sz = normalizeWbTechSize(s.techSize);
         if (sz) availSizes[sz] = true;
+        var gz = normalizeGloveSize(s.techSize);
+        if (gz) availGloveSizes[gz] = true;
       });
     }
     return {
@@ -893,8 +910,9 @@ function renderWbStock(stockData, cardsData) {
       qty: byNm[nm].qty,
       toClient: byNm[nm].toClient,
       fromClient: byNm[nm].fromClient,
-      sizes: byNm[nm].sizes
-,
+      sizes: byNm[nm].sizes,
+      gloveSizes: byNm[nm].gloveSizes,
+      availableGloveSizes: availGloveSizes,
       availableSizes: availSizes
     };
   });
@@ -945,12 +963,23 @@ function renderWbStock(stockData, cardsData) {
     // остальных вкладках) по названию товара. Для товаров, которых нет в
     // нашем списке, ключа пока не существует — стоимость будет 0, пока
     // пользователь не впишет её сам прямо в этой таблице.
-    var costKey = item.name || item.vendorCode || item.nm;
+    var isGlove = categorizeWbItem(item) === 'gloves';
+    // У перчаток несколько карточек с одинаковым названием (разные артикулы продавца),
+    // поэтому себестоимость для них ведём по названию + артикулу продавца.
+    var costKey = isGlove ? ((item.name || '') + ' · ' + (item.vendorCode || item.nm)) : (item.name || item.vendorCode || item.nm);
     var hasSizeInfo = item.availableSizes && Object.keys(item.availableSizes).length > 0;
-    var sizeCells = OUR_SIZES.map(function (k) {
-      if (hasSizeInfo && !item.availableSizes[k]) return '<td></td>';
-      return '<td>' + (Number(item.sizes[k]) || 0) + '</td>';
-    }).join('');
+    var sizeCells;
+    if (isGlove) {
+      sizeCells = GLOVE_SIZES.map(function (k) {
+        if (!item.availableGloveSizes || !item.availableGloveSizes[k]) return '<td></td>';
+        return '<td>' + (Number(item.gloveSizes && item.gloveSizes[k]) || 0) + '</td>';
+      }).join('');
+    } else {
+      sizeCells = OUR_SIZES.map(function (k) {
+        if (hasSizeInfo && !item.availableSizes[k]) return '<td></td>';
+        return '<td>' + (Number(item.sizes[k]) || 0) + '</td>';
+      }).join('');
+    }
     tr.innerHTML =
       '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
       '<td class="cell-photo">' + photoHtml + '</td>' +
@@ -974,6 +1003,14 @@ function renderWbStock(stockData, cardsData) {
     headerRow.className = 'wb-category-row';
     headerRow.innerHTML = '<td colspan="16">' + cat.title + '</td>';
     tbody.appendChild(headerRow);
+    if (cat.key === 'gloves') {
+      var sizeHead = document.createElement('tr');
+      sizeHead.className = 'wb-glove-sizes-row';
+      sizeHead.innerHTML = '<td colspan="5" style="text-align:right;color:#777;font-size:12px;">Размеры перчаток →</td>' +
+        GLOVE_SIZES.map(function (k) { return '<td style="font-weight:600;color:#555;">' + k.replace('.', ',') + '</td>'; }).join('') +
+        '<td colspan="6"></td>';
+      tbody.appendChild(sizeHead);
+    }
     items.forEach(renderRow);
   });
 
@@ -1100,6 +1137,7 @@ var competitorsOrder = [];
   var COMPETITOR_CATEGORIES = [
     { value: 'shirts', label: 'Рубашки' },
     { value: 'hoodies', label: 'Худи' },
+    { value: 'gloves', label: 'Перчатки' },
     { value: 'other', label: 'Прочее' }
     ];
 
