@@ -469,6 +469,17 @@ document.querySelectorAll('table.stock-table thead th.cell-total').forEach(funct
 var costs = {};
 var saveCostsTimer = null;
 
+// "2026-10-19" -> "19.10" (день.месяц)
+function formatDayShort(day) {
+  var p = String(day || '').split('-');
+  return p.length === 3 ? p[2] + '.' + p[1] : String(day || '');
+}
+// "2026-10-19" -> "19.10.2026"
+function formatDayFull(day) {
+  var p = String(day || '').split('-');
+  return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : String(day || '');
+}
+
 function formatMoney(n) {
   return n.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' ₽';
 }
@@ -1279,7 +1290,7 @@ function renderCompetitorTile(competitor) {
   var matchesHtml = lastScan
     ? '<span class="competitor-tile-matches' + (lastScan.matchesCount === 0 ? ' zero' : '') + '">' + lastScan.matchesCount + ' карт.' + deltaHtml + '</span>'
     : '<span class="competitor-tile-matches zero">нет данных</span>';
-  var dateHtml = lastScan ? '<span class="competitor-tile-date">' + lastScan.day.slice(5) + '</span>' : '';
+  var dateHtml = lastScan ? '<span class="competitor-tile-date">' + formatDayShort(lastScan.day) + '</span>' : '';
   var displayName = competitor.wbTitle || competitor.name;
   var currentCategory = competitor.category || 'shirts';
   var categoryOptionsHtml = COMPETITOR_CATEGORIES.map(function (c) {
@@ -1398,7 +1409,7 @@ function renderCompetitorModal(competitor, historyData) {
         '<div class="competitor-modal-title">' + escapeAttr(competitor.name) + '</div>' +
         '<div class="competitor-modal-meta"><a href="' + escapeAttr(competitor.url) + '" target="_blank" rel="noopener">артикул ' + competitor.nmID + ' на WB &#8594;</a>' +
         (lastScan
-          ? '<br>проверено ' + lastDay + ' (' + new Date(lastScan.scannedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + '), карточек в блоке «Смотрите также»: ' + lastScan.totalSeen
+          ? '<br>проверено ' + formatDayFull(lastDay) + ' (' + new Date(lastScan.scannedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + '), карточек в блоке «Смотрите также»: ' + lastScan.totalSeen
           : '<br>ещё не проверялось') +
         '</div>' +
       '</div>' +
@@ -1434,7 +1445,7 @@ function renderCompetitorModal(competitor, historyData) {
 
   var thead = document.createElement('thead');
   var headRow = '<tr><th class="cell-name">Моя карточка</th>';
-  recentDays.forEach(function (day) { headRow += '<th>' + day.slice(5) + '</th>'; });
+  recentDays.forEach(function (day) { headRow += '<th>' + formatDayShort(day) + '</th>'; });
   headRow += '</tr>';
   thead.innerHTML = headRow;
   table.appendChild(thead);
