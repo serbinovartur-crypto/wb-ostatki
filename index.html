@@ -1508,40 +1508,31 @@ function renderCompetitorModal(competitor, historyData) {
         cls = 'gone';
         text = 'нет';
       }
-      cells += '<td class="pos-cell ' + cls + '">' + text + '</td>';
+      cells += '<td class="pos-cell ' + cls + '">' + text + cardAdHtml(col.scan, nmId) + '</td>';
     });
 
     tr.innerHTML = nameCell + cells;
     tbody.appendChild(tr);
   });
-  // Нижняя строка: какие рекламные кампании работали на момент каждого скана.
+  // Реклама на момент скана ДЛЯ КОНКРЕТНОЙ карточки — показываем прямо в её ячейке.
   function fmtRub(v) { return (Math.round(v * 100) / 100).toString().replace('.', ','); }
-  function adsCellHtml(scan) {
+  function cardAdHtml(scan, nmId) {
     var snap = scan.adsSnapshot;
-    if (!snap) return '<span style="color:#999;">нет данных</span>';
-    if (!snap.campaigns || !snap.campaigns.length) return '<span style="color:#999;">реклама выключена</span>';
-    return snap.campaigns.map(function (c) {
-      var kind = (c.paymentType === 'cpc' ? 'CPC (за клик)' : 'CPM (за показы)') + ', ' + (c.bidType === 'unified' ? 'авто' : 'ручная');
-      var where = [];
-      if (c.recommendations) where.push('рекомендации');
-      if (c.search) where.push('поиск');
-      var bids = (c.bids || []).map(function (b) {
-        var p = productsByNm[b.nmID];
-        var tag = p && p.vendorCode ? String(p.vendorCode).replace(/^.*_/, '_') : String(b.nmID);
+    if (!snap) return '';
+    var lines = [];
+    (snap.campaigns || []).forEach(function (c) {
+      (c.bids || []).forEach(function (b) {
+        if (String(b.nmID) !== String(nmId)) return;
         var parts = [];
         if (c.recommendations && b.rec != null) parts.push('рек ' + fmtRub(b.rec));
         if (c.search && b.search != null) parts.push('поиск ' + fmtRub(b.search));
-        return tag + ': ' + parts.join(' / ') + ' ₽';
-      }).join('<br>');
-      return '<div style="margin-bottom:6px;"><b>' + kind + '</b><br>' + where.join(' + ') + '<br>' + bids + '</div>';
-    }).join('');
+        var kind = (c.paymentType === 'cpc' ? 'CPC' : 'CPM') + (c.bidType === 'unified' ? ' авто' : '');
+        lines.push(kind + ': ' + parts.join(' / ') + ' ₽');
+      });
+    });
+    var inner = lines.length ? lines.join('<br>') : 'без рекламы';
+    return '<div class="cell-ad" style="font-size:10px;font-weight:400;line-height:1.25;color:#555;margin-top:3px;white-space:nowrap;">' + inner + '</div>';
   }
-  var adsRow = '<tr class="ads-row"><td class="cell-name"><b>Реклама на момент скана</b></td>';
-  columns.forEach(function (col) {
-    adsRow += '<td style="font-size:11px;text-align:left;vertical-align:top;min-width:130px;">' + adsCellHtml(col.scan) + '</td>';
-  });
-  adsRow += '</tr>';
-  tbody.insertAdjacentHTML('beforeend', adsRow);
   table.appendChild(tbody);
   tableWrap.appendChild(table);
   tableWrapTarget.appendChild(tableWrap);
