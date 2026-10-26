@@ -1356,15 +1356,36 @@ function renderCompetitorModal(competitor, historyData) {
   var modalBody = document.getElementById('competitor-modal-body');
   var history = (historyData && historyData.history) || {};
   var days = Object.keys(history).sort();
+  var scansByDay = (historyData && historyData.scans) || {};
+  // Все сканы дня по порядку (старые данные без scans — один скан на день)
+  function scansOf(day) {
+    return (scansByDay[day] && scansByDay[day].length) ? scansByDay[day] : [history[day]];
+  }
   var recentDays = days.slice(-COMPETITORS_MAX_HISTORY_DAYS);
+  // Колонки таблицы: КАЖДЫЙ скан — отдельная колонка (в порядке выполнения)
+  var columns = [];
+  recentDays.forEach(function (day) {
+    var list = scansOf(day);
+    list.forEach(function (scan, i) {
+      var label = formatDayShort(day);
+      if (list.length > 1) {
+        label += '<br><span style="font-weight:400;font-size:11px;">' +
+          new Date(scan.scannedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + '</span>';
+      }
+      columns.push({ day: day, scan: scan, label: label });
+    });
+  });
+  // Те же колонки, но по всей истории — чтобы не терять строки карточек,
+  // которые когда-то были в топе, а потом выпали из видимого окна.
+  var allScans = [];
+  days.forEach(function (day) { scansOf(day).forEach(function (s) { allScans.push(s); }); });
 
   // Карточка, которая хоть раз попадала в топ конкурента, остаётся строкой
   // в таблице навсегда (с фото) — даже если позже выпала из топ-30 и из
-  // отображаемого окна дней. Поэтому здесь берём ВСЮ историю (days), а не
-  // только последние recentDays, чтобы не терять такие карточки.
+  // отображаемого окна дней. Поэтому здесь берём ВСЮ историю.
   var productsByNm = {};
-  days.forEach(function (day) {
-    (history[day].matches || []).forEach(function (m) {
+  allScans.forEach(function (scan) {
+    (scan.matches || []).forEach(function (m) {
       productsByNm[m.nmID] = { name: m.myName, vendorCode: m.myVendorCode, photo: m.myPhoto };
     });
   });
@@ -1375,14 +1396,12 @@ function renderCompetitorModal(competitor, historyData) {
   // она когда-то встречалась раньше — ищем её последнюю известную позицию по
   // всей истории и ставим такую строку в конец списка (после видимых).
   function latestPositionFor(nmId) {
-    for (var i = recentDays.length - 1; i >= 0; i--) {
-      var day = recentDays[i];
-      var found = (history[day].matches || []).filter(function (m) { return String(m.nmID) === String(nmId); })[0];
-      if (found) return { position: found.position, daysAgo: recentDays.length - 1 - i };
+    for (var i = columns.length - 1; i >= 0; i--) {
+      var found = (columns[i].scan.matches || []).filter(function (m) { return String(m.nmID) === String(nmId); })[0];
+      if (found) return { position: found.position, daysAgo: columns.length - 1 - i };
     }
-    for (var j = days.length - 1; j >= 0; j--) {
-      var day2 = days[j];
-      var found2 = (history[day2].matches || []).filter(function (m) { return String(m.nmID) === String(nmId); })[0];
+    for (var j = allScans.length - 1; j >= 0; j--) {
+      var found2 = (allScans[j].matches || []).filter(function (m) { return String(m.nmID) === String(nmId); })[0];
       if (found2) return { position: found2.position, daysAgo: Infinity };
     }
     return { position: Infinity, daysAgo: Infinity };
@@ -1445,7 +1464,7 @@ function renderCompetitorModal(competitor, historyData) {
 
   var thead = document.createElement('thead');
   var headRow = '<tr><th class="cell-name">Моя карточка</th>';
-  recentDays.forEach(function (day) { headRow += '<th>' + formatDayShort(day) + '</th>'; });
+  columns.forEach(function (col) { headRow += '<th>' + col.label + '</th>'; });
   headRow += '</tr>';
   thead.innerHTML = headRow;
   table.appendChild(thead);
@@ -1463,8 +1482,8 @@ function renderCompetitorModal(competitor, historyData) {
 
     var prevPos = null;
     var cells = '';
-    recentDays.forEach(function (day) {
-      var dayMatches = history[day].matches || [];
+    columns.forEach(function (col) {
+      var dayMatches = col.scan.matches || [];
       var found = dayMatches.filter(function (m) { return String(m.nmID) === String(nmId); })[0];
       var cls = '';
       var text = '—';
