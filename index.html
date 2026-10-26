@@ -1369,7 +1369,9 @@ function renderCompetitorModal(competitor, historyData) {
     list.forEach(function (scan, i) {
       var label = formatDayShort(day);
       if (list.length > 1) {
-        label += '<br><span style="font-weight:400;font-size:11px;">' +
+        label += '<br><span style="font-weight:400;font-size:11px;"' +
+          (scan.restored ? ' title="Скан восстановлен по записям в чате: время приблизительное, метки рекламы нет"' : '') + '>' +
+          (scan.restored ? '≈' : '') +
           new Date(scan.scannedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + '</span>';
       }
       columns.push({ day: day, scan: scan, label: label });
