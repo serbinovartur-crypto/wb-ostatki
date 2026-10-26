@@ -1514,6 +1514,34 @@ function renderCompetitorModal(competitor, historyData) {
     tr.innerHTML = nameCell + cells;
     tbody.appendChild(tr);
   });
+  // Нижняя строка: какие рекламные кампании работали на момент каждого скана.
+  function fmtRub(v) { return (Math.round(v * 100) / 100).toString().replace('.', ','); }
+  function adsCellHtml(scan) {
+    var snap = scan.adsSnapshot;
+    if (!snap) return '<span style="color:#999;">нет данных</span>';
+    if (!snap.campaigns || !snap.campaigns.length) return '<span style="color:#999;">реклама выключена</span>';
+    return snap.campaigns.map(function (c) {
+      var kind = (c.paymentType === 'cpc' ? 'CPC (за клик)' : 'CPM (за показы)') + ', ' + (c.bidType === 'unified' ? 'авто' : 'ручная');
+      var where = [];
+      if (c.recommendations) where.push('рекомендации');
+      if (c.search) where.push('поиск');
+      var bids = (c.bids || []).map(function (b) {
+        var p = productsByNm[b.nmID];
+        var tag = p && p.vendorCode ? String(p.vendorCode).replace(/^.*_/, '_') : String(b.nmID);
+        var parts = [];
+        if (c.recommendations && b.rec != null) parts.push('рек ' + fmtRub(b.rec));
+        if (c.search && b.search != null) parts.push('поиск ' + fmtRub(b.search));
+        return tag + ': ' + parts.join(' / ') + ' ₽';
+      }).join('<br>');
+      return '<div style="margin-bottom:6px;"><b>' + kind + '</b><br>' + where.join(' + ') + '<br>' + bids + '</div>';
+    }).join('');
+  }
+  var adsRow = '<tr class="ads-row"><td class="cell-name"><b>Реклама на момент скана</b></td>';
+  columns.forEach(function (col) {
+    adsRow += '<td style="font-size:11px;text-align:left;vertical-align:top;min-width:130px;">' + adsCellHtml(col.scan) + '</td>';
+  });
+  adsRow += '</tr>';
+  tbody.insertAdjacentHTML('beforeend', adsRow);
   table.appendChild(tbody);
   tableWrap.appendChild(table);
   tableWrapTarget.appendChild(tableWrap);
