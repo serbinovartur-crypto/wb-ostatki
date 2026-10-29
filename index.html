@@ -33,6 +33,9 @@
   .cell-photo img { width:56px; height:56px; object-fit:cover; border-radius:6px; display:block; }
   .noimg { width:56px; height:56px; border-radius:6px; background:#eee; color:#999; font-size:9px; display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2; }
   .cell-name { text-align:left; font-weight:600; white-space:normal; min-width:180px; }
+  /* В модалке конкурента колонка с названием карточки остаётся на месте при прокрутке */
+  table.competitor-history-table .cell-name { position:sticky; left:0; background:#fff; z-index:2; box-shadow:1px 0 0 #e2e0da; }
+  table.competitor-history-table thead th.cell-name { background:#1b1b1b; z-index:3; }
   .cell-total { font-weight:700; }
   table.stock-table thead th.cell-total.sortable-col { cursor:pointer; user-select:none; }
   table.stock-table thead th.cell-total.sortable-col:hover { background:#333; }
@@ -1534,8 +1537,11 @@ function renderCompetitorModal(competitor, historyData) {
     return '<div class="cell-ad" style="font-size:10px;font-weight:400;line-height:1.25;color:#555;margin-top:3px;white-space:nowrap;">' + inner + '</div>';
   }
   table.appendChild(tbody);
+  table.classList.add('competitor-history-table');
   tableWrap.appendChild(table);
   tableWrapTarget.appendChild(tableWrap);
+  // Новые сканы справа: при открытии сразу показываем правый край таблицы, старые - прокруткой влево.
+  tableWrap.scrollLeft = tableWrap.scrollWidth;
 }
 
 function addCompetitor(evt) {
