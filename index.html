@@ -39,6 +39,9 @@
   .cell-total { font-weight:700; }
   table.stock-table thead th.cell-total.sortable-col { cursor:pointer; user-select:none; }
   table.stock-table thead th.cell-total.sortable-col:hover { background:#333; }
+  #tab-upakovannye thead, #tab-neupakovannye thead, #tab-obshee thead, #tab-wb-stock thead { display:none; }
+  table.stock-table tr.cat-head-row td { background:#1b1b1b; color:#fff; font-weight:600; font-size:12px; }
+  table.stock-table tbody tr.cat-head-row:hover { background:#1b1b1b; }
   .sort-arrow { display:inline-block; margin-left:4px; font-size:10px; opacity:0.85; }
   .cell-cost { width:110px; }
   .cost-input { width:90px; text-align:right; border:1px solid #d8d5cd; border-radius:5px; padding:5px 7px; font-size:13px; font-family:inherit; }
@@ -588,7 +591,37 @@ var GLOVE_SIZES = ['9', '9.5', '10', '10.5', '11', '11.5', '12', '12.5', '13'];
 function normalizeGloveSize(raw) {
   if (raw == null) return null;
   var v = String(raw).trim().replace(',', '.');
-  return GLOVE_SIZES.indexOf(v) !== -1 ? v : null;
+  if (!/^\d{1,2}(\.5)?$/.test(v)) return null;
+  var n = parseFloat(v);
+  return (n >= 6 && n <= 16) ? v : null;
+}
+// Общие помощники: у каждой категории своя шапка с её размерами, а колонки везде одной ширины.
+function sortSizeKeys(keys, glove) {
+  var arr = Array.from(new Set(keys));
+  if (glove) arr.sort(function (x, y) { return parseFloat(x) - parseFloat(y); });
+  else arr.sort(function (x, y) { return OUR_SIZES.indexOf(x) - OUR_SIZES.indexOf(y); });
+  return arr;
+}
+function applyGrid(table, lead, slots, tail) {
+  var old = table.querySelector('colgroup'); if (old) old.remove();
+  var cg = document.createElement('colgroup');
+  var ws = lead.concat(new Array(slots).fill(56), tail);
+  ws.forEach(function (w) { var c = document.createElement('col'); c.style.width = w + 'px'; cg.appendChild(c); });
+  table.insertBefore(cg, table.firstChild);
+  table.style.tableLayout = 'fixed';
+  table.style.width = ws.reduce(function (s, w) { return s + w; }, 0) + 'px';
+  table.style.minWidth = '0';
+  var f = table.querySelector('tfoot td[colspan]'); if (f) f.setAttribute('colspan', String(ws.length - 1));
+  return ws.length;
+}
+function appendCategoryHead(tbody, total, title, labelsLead, cols, slots, labelsTail) {
+  var t = document.createElement('tr'); t.className = 'wb-category-row';
+  t.innerHTML = '<td colspan="' + total + '" style="text-align:left;">' + title + '</td>'; tbody.appendChild(t);
+  var h = document.createElement('tr'); h.className = 'cat-head-row';
+  var cells = labelsLead.map(function (x) { return '<td>' + x + '</td>'; }).concat(cols.map(function (k) { return '<td>' + String(k).replace('.', ',') + '</td>'; }));
+  for (var i = cols.length; i < slots; i++) cells.push('<td></td>');
+  labelsTail.forEach(function (x) { cells.push('<td>' + x + '</td>'); });
+  h.innerHTML = cells.join(''); tbody.appendChild(h);
 }
 var PRODUCT_CATALOG = [
   { name: "Голубая полоска, кор. рукав", photo: "image1.jpg", skus: "374082605, 1290477757" },
@@ -647,64 +680,62 @@ function applyCustomOrderFlat(items, slug) {
 function renderSizeTable(slug, sizesMap, catalog) {
   var tbody = document.getElementById('tbody-' + slug);
   if (!tbody) return;
-  var showAll = slug === 'obshee'; // в "Общее" перчатки и кардиган показываем всегда, даже с нулями
+  var table = tbody.closest('table');
 
   var items = (catalog || PRODUCT_CATALOG).map(function (p, idx) {
-    var keys = p.glove ? GLOVE_SIZES : OUR_SIZES;
+    var keys = p.glove ? (p.avail || GLOVE_SIZES) : OUR_SIZES;
     var sizes = sizesMap[p.name] || {};
     var total = keys.reduce(function (s, k) { return s + (Number(sizes[k]) || 0); }, 0);
     return { idx: idx, name: p.name, photo: p.photo, skus: p.skus, sizes: sizes, total: total, glove: !!p.glove, cardigan: !!p.cardigan, avail: p.avail || null };
   }).filter(function (it) { return it.total > 0 || it.glove || it.cardigan; });
 
   var plain = items.filter(function (it) { return !it.glove && !it.cardigan; });
-  var cardigans = items.filter(function (it) { return it.cardigan; });
-  var gloves = items.filter(function (it) { return it.glove; });
   plain.sort(function (a, b) { return b.total - a.total; });
   plain = applyCustomOrderFlat(plain, slug);
+  function unionCols(list, glove, fallback) {
+    var keys = [];
+    list.forEach(function (it) { (it.avail || fallback).forEach(function (k) { keys.push(k); }); });
+    return sortSizeKeys(keys, glove);
+  }
+  var cats = [];
+  var gl = items.filter(function (it) { return it.glove; });
+  var cg = items.filter(function (it) { return it.cardigan; });
+  if (gl.length) cats.push({ title: 'Перчатки', items: gl, cols: unionCols(gl, true, GLOVE_SIZES), glove: true });
+  if (cg.length) cats.push({ title: 'Кардиган', items: cg, cols: unionCols(cg, false, OUR_SIZES), glove: false });
+  if (plain.length) cats.push({ title: 'Рубашки и худи', items: plain, cols: OUR_SIZES.slice(), glove: false });
+  var slots = Math.max(5, cats.reduce(function (m, c) { return Math.max(m, c.cols.length); }, 0));
+  var lead = [34, 72, 250, 130], tail = [70, 130, 110];
+  var totalCols = applyGrid(table, lead, slots, tail);
 
   tbody.innerHTML = '';
-  function addRow(item) {
-    var tr = document.createElement('tr');
-    tr.dataset.id = slug + '-' + item.idx;
-    var photoHtml = item.photo
-      ? '<img src="' + item.photo + '" alt="' + escapeAttr(item.name) + '" loading="lazy">'
-      : '<div class="noimg">нет фото</div>';
-    var keys = item.glove ? GLOVE_SIZES : OUR_SIZES;
-    var editable = (item.glove || item.cardigan) && slug !== 'obshee';
-    var sizeCells = keys.map(function (k) {
-      if (item.avail && item.avail.indexOf(k) === -1) return '<td></td>';
-      var v = Number(item.sizes[k]) || 0;
-      if (editable) return '<td><input type="number" class="qty-input" min="0" step="1" data-size="' + k + '" value="' + v + '" style="width:54px;text-align:center;"></td>';
-      return '<td>' + v + '</td>';
-    }).join('');
-    tr.innerHTML =
-      '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
-      '<td class="cell-photo">' + photoHtml + '</td>' +
-      '<td class="cell-name">' + item.name + '</td>' +
-      '<td class="cell-sku">' + (item.skus || '—') + '</td>' +
-      sizeCells +
-      '<td class="cell-total">' + item.total + '</td>' +
-      '<td class="cell-cost"><input type="number" class="cost-input" data-name="' + escapeAttr(item.name) + '" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>' +
-      '<td class="cell-sum">—</td>';
-    tbody.appendChild(tr);
-  }
-  function addCategory(title, withGloveHead) {
-    var hr = document.createElement('tr');
-    hr.className = 'wb-category-row';
-    hr.innerHTML = '<td colspan="16">' + title + '</td>';
-    tbody.appendChild(hr);
-    if (withGloveHead) {
-      var sh = document.createElement('tr');
-      sh.className = 'wb-glove-sizes-row';
-      sh.innerHTML = '<td colspan="4" style="text-align:right;color:#777;font-size:12px;">Размеры перчаток →</td>' +
-        GLOVE_SIZES.map(function (k) { return '<td style="font-weight:600;color:#555;">' + k.replace('.', ',') + '</td>'; }).join('') +
-        '<td style="font-weight:600;color:#555;">Итого</td><td style="font-weight:600;color:#555;">Себест.</td><td style="font-weight:600;color:#555;">Сумма</td>';
-      tbody.appendChild(sh);
-    }
-  }
-  if (gloves.length) { addCategory('Перчатки', true); gloves.forEach(addRow); }
-  if (cardigans.length) { addCategory('Кардиган', false); cardigans.forEach(addRow); }
-  if (plain.length) { if (gloves.length || cardigans.length) addCategory('Рубашки и худи', false); plain.forEach(addRow); }
+  var editableTab = slug !== 'obshee';
+  cats.forEach(function (cat) {
+    appendCategoryHead(tbody, totalCols, cat.title, ['', 'Фото', 'Название', 'Артикул'], cat.cols, slots, ['Итого', 'Себестоимость', 'Сумма']);
+    cat.items.forEach(function (item) {
+      var tr = document.createElement('tr');
+      tr.dataset.id = slug + '-' + item.idx;
+      var photoHtml = item.photo
+        ? '<img src="' + item.photo + '" alt="' + escapeAttr(item.name) + '" loading="lazy">'
+        : '<div class="noimg">нет фото</div>';
+      var editable = (item.glove || item.cardigan) && editableTab;
+      var sizeCells = cat.cols.map(function (k) {
+        if (item.avail && item.avail.indexOf(k) === -1) return '<td></td>';
+        var v = Number(item.sizes[k]) || 0;
+        if (editable) return '<td><input type="number" class="qty-input" min="0" step="1" data-size="' + k + '" value="' + v + '" style="width:48px;text-align:center;"></td>';
+        return '<td>' + v + '</td>';
+      }).join('') + new Array(slots - cat.cols.length + 1).join('<td></td>');
+      tr.innerHTML =
+        '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
+        '<td class="cell-photo">' + photoHtml + '</td>' +
+        '<td class="cell-name">' + item.name + '</td>' +
+        '<td class="cell-sku">' + (item.skus || '—') + '</td>' +
+        sizeCells +
+        '<td class="cell-total">' + item.total + '</td>' +
+        '<td class="cell-cost"><input type="number" class="cost-input" data-name="' + escapeAttr(item.name) + '" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>' +
+        '<td class="cell-sum">—</td>';
+      tbody.appendChild(tr);
+    });
+  });
 
   var totalUnits = items.reduce(function (s, it) { return s + it.total; }, 0);
   var totalEl = document.querySelector('#tab-' + slug + ' .section-total');
@@ -755,7 +786,7 @@ function loadStockTables() {
     var unpacked = (results[1] && results[1].value) || {};
     var obshee = {};
     PRODUCT_CATALOG.forEach(function (p) {
-      obshee[p.name] = sumSizes(packed[p.name] || {}, unpacked[p.name] || {}, p.glove ? GLOVE_SIZES : OUR_SIZES);
+      obshee[p.name] = sumSizes(packed[p.name] || {}, unpacked[p.name] || {}, p.glove ? (p.avail || GLOVE_SIZES) : OUR_SIZES);
     });
     renderSizeTable('upakovannye', packed);
     renderSizeTable('neupakovannye', unpacked);
@@ -1019,7 +1050,7 @@ function renderWbStock(stockData, cardsData) {
   var totalToClient = 0;
   var totalFromClient = 0;
 
-  function renderRow(item) {
+  function renderRow(item, cols, slots) {
     totalWarehouse += item.qty;
     totalToClient += item.toClient;
     totalFromClient += item.fromClient;
@@ -1048,19 +1079,12 @@ function renderWbStock(stockData, cardsData) {
     // У перчаток несколько карточек с одинаковым названием (разные артикулы продавца),
     // поэтому себестоимость для них ведём по названию + артикулу продавца.
     var costKey = isGlove ? ((item.name || '') + ' · ' + (item.vendorCode || item.nm)) : (item.name || item.vendorCode || item.nm);
-    var hasSizeInfo = item.availableSizes && Object.keys(item.availableSizes).length > 0;
-    var sizeCells;
-    if (isGlove) {
-      sizeCells = GLOVE_SIZES.map(function (k) {
-        if (!item.availableGloveSizes || !item.availableGloveSizes[k]) return '<td></td>';
-        return '<td>' + (Number(item.gloveSizes && item.gloveSizes[k]) || 0) + '</td>';
-      }).join('');
-    } else {
-      sizeCells = OUR_SIZES.map(function (k) {
-        if (hasSizeInfo && !item.availableSizes[k]) return '<td></td>';
-        return '<td>' + (Number(item.sizes[k]) || 0) + '</td>';
-      }).join('');
-    }
+    var availMap = isGlove ? item.availableGloveSizes : item.availableSizes;
+    var sizeCells = cols.map(function (k) {
+      if (availMap && Object.keys(availMap).length && !availMap[k]) return '<td></td>';
+      var v = isGlove ? (item.gloveSizes && item.gloveSizes[k]) : item.sizes[k];
+      return '<td>' + (Number(v) || 0) + '</td>';
+    }).join('') + new Array(slots - cols.length + 1).join('<td></td>');
     tr.innerHTML =
       '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
       '<td class="cell-photo">' + photoHtml + '</td>' +
@@ -1077,22 +1101,22 @@ function renderWbStock(stockData, cardsData) {
     tbody.appendChild(tr);
   }
 
+  var activeCats = [];
   WB_CATEGORIES.forEach(function(cat) {
     var items = applyCustomOrderWithinGroup(groups[cat.key], savedOrder);
     if (!items.length) return;
-    var headerRow = document.createElement('tr');
-    headerRow.className = 'wb-category-row';
-    headerRow.innerHTML = '<td colspan="16">' + cat.title + '</td>';
-    tbody.appendChild(headerRow);
-    if (cat.key === 'gloves') {
-      var sizeHead = document.createElement('tr');
-      sizeHead.className = 'wb-glove-sizes-row';
-      sizeHead.innerHTML = '<td colspan="5" style="text-align:right;color:#777;font-size:12px;">Размеры перчаток →</td>' +
-        GLOVE_SIZES.map(function (k) { return '<td style="font-weight:600;color:#555;">' + k.replace('.', ',') + '</td>'; }).join('') +
-        '<td style="font-weight:600;color:#555;">На складе</td><td style="font-weight:600;color:#555;">К клиенту</td><td style="font-weight:600;color:#555;">Возврат</td><td style="font-weight:600;color:#555;">Итого</td><td style="font-weight:600;color:#555;">Себест.</td><td style="font-weight:600;color:#555;">Сумма</td>';
-      tbody.appendChild(sizeHead);
-    }
-    items.forEach(renderRow);
+    var isG = cat.key === 'gloves';
+    var keys = [];
+    items.forEach(function (it) { Object.keys((isG ? it.availableGloveSizes : it.availableSizes) || {}).forEach(function (k) { keys.push(k); }); });
+    var cols = sortSizeKeys(keys, isG);
+    if (!cols.length) cols = isG ? GLOVE_SIZES.slice() : OUR_SIZES.slice();
+    activeCats.push({ cat: cat, items: items, cols: cols });
+  });
+  var wbSlots = Math.max(5, activeCats.reduce(function (m, c) { return Math.max(m, c.cols.length); }, 0));
+  var wbTotalCols = applyGrid(tbody.closest('table'), [34, 72, 110, 150, 230], wbSlots, [84, 96, 84, 70, 120, 110]);
+  activeCats.forEach(function (ac) {
+    appendCategoryHead(tbody, wbTotalCols, ac.cat.title, ['', 'Фото', 'Артикул', 'Артикул продавца', 'Название'], ac.cols, wbSlots, ['На складах ВБ', 'В пути к покупателю', 'Возврат в пути', 'Итого', 'Себестоимость', 'Сумма']);
+    ac.items.forEach(function (it) { renderRow(it, ac.cols, wbSlots); });
   });
 
   if (totalEl) {
