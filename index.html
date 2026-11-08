@@ -507,7 +507,21 @@ function recomputeTable(table) {
   var tbody = table.querySelector('tbody');
   if (!tbody) return;
   var sum = 0;
-  Array.prototype.forEach.call(tbody.children, function(tr) { sum += computeRowSum(tr); });
+  // Подытог по каждой категории: сумма (количество × себестоимость) и штуки.
+  var catRow = null, catSum = 0, catQty = 0;
+  function flushCat() {
+    if (!catRow) return;
+    var el = catRow.querySelector('.cat-sum');
+    if (el) el.textContent = '— ' + (catSum ? formatMoney(catSum) : '0 ₽') + ' · ' + catQty + ' шт.';
+  }
+  Array.prototype.forEach.call(tbody.children, function(tr) {
+    if (tr.classList.contains('wb-category-row')) { flushCat(); catRow = tr; catSum = 0; catQty = 0; return; }
+    var s = computeRowSum(tr);
+    sum += s; catSum += s;
+    var tc = tr.querySelector('td.cell-total');
+    if (tc) catQty += parseFloat(tc.textContent) || 0;
+  });
+  flushCat();
   var footerCell = table.querySelector('.tab-cost-total');
   if (footerCell) footerCell.textContent = sum ? formatMoney(sum) : '—';
 }
@@ -617,7 +631,7 @@ function applyGrid(table, lead, slots, tail) {
 }
 function appendCategoryHead(tbody, total, title, labelsLead, cols, slots, labelsTail) {
   var t = document.createElement('tr'); t.className = 'wb-category-row';
-  t.innerHTML = '<td colspan="' + total + '" style="text-align:left;">' + title + '</td>'; tbody.appendChild(t);
+  t.innerHTML = '<td colspan="' + total + '" style="text-align:left;">' + title + '<span class="cat-sum" style="margin-left:18px;color:#555;font-weight:600;"></span></td>'; tbody.appendChild(t);
   var h = document.createElement('tr'); h.className = 'cat-head-row';
   var cells = labelsLead.map(function (x) { return '<td>' + x + '</td>'; }).concat(cols.map(function (k) { return '<td>' + String(k).replace('.', ',') + '</td>'; }));
   for (var i = cols.length; i < slots; i++) cells.push('<td></td>');
