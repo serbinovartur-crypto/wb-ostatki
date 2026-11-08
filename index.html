@@ -609,19 +609,15 @@ var PRODUCT_CATALOG = [
   { name: "Жёлтая полоска, кор. рукав", photo: "image16.jpg", skus: "246580139" },
   { name: "Зип-худи зелёная", photo: "image20.jpg", skus: "648344782" },
   { name: "Зип-худи коричневая", photo: "image21.jpg", skus: "648207994" },
-  { name: "Свитшот белый", photo: null, skus: null },
-  { name: "Свитшот чёрный", photo: null, skus: null },
-  { name: "Свитшот белый (без размера)", photo: null, skus: null },
-  { name: "Свитшот чёрный (без размера)", photo: null, skus: null },
-  { name: "Кардиган чёрный", photo: null, skus: "2124334190", cardigan: true, avail: ['S','M','L'] },
-  { name: "Перчатки_тяк_01", photo: null, skus: "1852030916", glove: true, avail: ['11','11.5','12','12.5','13'] },
-  { name: "Перчатки_тяк_02", photo: null, skus: "1852087714", glove: true, avail: ['11','11.5','12','12.5','13'] },
-  { name: "Перчатки_тяк_03", photo: null, skus: "1870044934", glove: true, avail: ['11','11.5','12','12.5','13'] },
-  { name: "Перчатки_тяк_04", photo: null, skus: "1998109943", glove: true, avail: ['10','10.5','11','11.5','12'] },
-  { name: "Перчатки_тяк_05", photo: null, skus: "1998339648", glove: true, avail: ['9','9.5','10','10.5','11'] },
-  { name: "Перч_Кит_полоска_06", photo: null, skus: "2034052748", glove: true, avail: ['9','9.5','10','10.5','11'] },
-  { name: "Перч_Кит_Б/Рисунка_07", photo: null, skus: "2033859624", glove: true, avail: ['9','9.5','10','10.5','11'] },
-  { name: "Перчатки_кит_без/рисунка_08", photo: null, skus: "2207531756", glove: true, avail: ['9','9.5','10','10.5','11'] }
+  { name: "Кардиган чёрный", photo: "https://basket-56.wbbasket.ru/vol21243/part2124334/2124334190/images/square/1.webp", skus: "2124334190", cardigan: true, avail: ['S','M','L'] },
+  { name: "Перчатки_тяк_01", photo: "https://basket-52.wbbasket.ru/vol18520/part1852030/1852030916/images/square/1.webp", skus: "1852030916", glove: true, avail: ['11','11.5','12','12.5','13'] },
+  { name: "Перчатки_тяк_02", photo: "https://basket-52.wbbasket.ru/vol18520/part1852087/1852087714/images/square/1.webp", skus: "1852087714", glove: true, avail: ['11','11.5','12','12.5','13'] },
+  { name: "Перчатки_тяк_03", photo: "https://basket-52.wbbasket.ru/vol18700/part1870044/1870044934/images/square/1.webp", skus: "1870044934", glove: true, avail: ['11','11.5','12','12.5','13'] },
+  { name: "Перчатки_тяк_04", photo: "https://basket-54.wbbasket.ru/vol19981/part1998109/1998109943/images/square/1.webp", skus: "1998109943", glove: true, avail: ['10','10.5','11','11.5','12'] },
+  { name: "Перчатки_тяк_05", photo: "https://basket-54.wbbasket.ru/vol19983/part1998339/1998339648/images/square/1.webp", skus: "1998339648", glove: true, avail: ['9','9.5','10','10.5','11'] },
+  { name: "Перч_Кит_полоска_06", photo: "https://basket-54.wbbasket.ru/vol20340/part2034052/2034052748/images/square/1.webp", skus: "2034052748", glove: true, avail: ['9','9.5','10','10.5','11'] },
+  { name: "Перч_Кит_Б/Рисунка_07", photo: "https://basket-54.wbbasket.ru/vol20338/part2033859/2033859624/images/square/1.webp", skus: "2033859624", glove: true, avail: ['9','9.5','10','10.5','11'] },
+  { name: "Перчатки_кит_без/рисунка_08", photo: "https://basket-57.wbbasket.ru/vol22075/part2207531/2207531756/images/square/1.webp", skus: "2207531756", glove: true, avail: ['9','9.5','10','10.5','11'] }
 ];
 
 function emptySizes() { return { S: 0, M: 0, L: 0, XL: 0, XXL: 0 }; }
@@ -658,7 +654,7 @@ function renderSizeTable(slug, sizesMap, catalog) {
     var sizes = sizesMap[p.name] || {};
     var total = keys.reduce(function (s, k) { return s + (Number(sizes[k]) || 0); }, 0);
     return { idx: idx, name: p.name, photo: p.photo, skus: p.skus, sizes: sizes, total: total, glove: !!p.glove, cardigan: !!p.cardigan, avail: p.avail || null };
-  }).filter(function (it) { return it.total > 0 || (showAll && (it.glove || it.cardigan)); });
+  }).filter(function (it) { return it.total > 0 || it.glove || it.cardigan; });
 
   var plain = items.filter(function (it) { return !it.glove && !it.cardigan; });
   var cardigans = items.filter(function (it) { return it.cardigan; });
@@ -674,9 +670,12 @@ function renderSizeTable(slug, sizesMap, catalog) {
       ? '<img src="' + item.photo + '" alt="' + escapeAttr(item.name) + '" loading="lazy">'
       : '<div class="noimg">нет фото</div>';
     var keys = item.glove ? GLOVE_SIZES : OUR_SIZES;
+    var editable = (item.glove || item.cardigan) && slug !== 'obshee';
     var sizeCells = keys.map(function (k) {
       if (item.avail && item.avail.indexOf(k) === -1) return '<td></td>';
-      return '<td>' + (Number(item.sizes[k]) || 0) + '</td>';
+      var v = Number(item.sizes[k]) || 0;
+      if (editable) return '<td><input type="number" class="qty-input" min="0" step="1" data-size="' + k + '" value="' + v + '" style="width:54px;text-align:center;"></td>';
+      return '<td>' + v + '</td>';
     }).join('');
     tr.innerHTML =
       '<td class="cell-drag"><span class="drag-handle" title="Перетащить">&#8942;&#8942;</span></td>' +
@@ -703,14 +702,49 @@ function renderSizeTable(slug, sizesMap, catalog) {
       tbody.appendChild(sh);
     }
   }
-  plain.forEach(addRow);
-  if (cardigans.length) { addCategory('Кардиган', false); cardigans.forEach(addRow); }
   if (gloves.length) { addCategory('Перчатки', true); gloves.forEach(addRow); }
+  if (cardigans.length) { addCategory('Кардиган', false); cardigans.forEach(addRow); }
+  if (plain.length) { if (gloves.length || cardigans.length) addCategory('Рубашки и худи', false); plain.forEach(addRow); }
 
   var totalUnits = items.reduce(function (s, it) { return s + it.total; }, 0);
   var totalEl = document.querySelector('#tab-' + slug + ' .section-total');
   if (totalEl) totalEl.textContent = 'Всего единиц: ' + totalUnits;
 }
+
+// Ручной ввод количества для перчаток и кардигана (вкладки "Упакованные" и "Неупакованные").
+// Перед сохранением заново читаем актуальные остатки с сервера, чтобы не затереть
+// автоматические списания, которые могли пройти, пока страница была открыта.
+document.addEventListener('change', function (ev) {
+  var inp = ev.target;
+  if (!inp || !inp.classList || !inp.classList.contains('qty-input')) return;
+  var tr = inp.closest('tr');
+  var tbody = tr && tr.parentNode;
+  var slug = tbody && tbody.id ? tbody.id.replace('tbody-', '') : '';
+  var key = slug === 'upakovannye' ? 'stock_packed' : slug === 'neupakovannye' ? 'stock_unpacked' : null;
+  if (!key) return;
+  var idx = Number((tr.dataset.id || '').split('-').pop());
+  var prod = PRODUCT_CATALOG[idx];
+  if (!prod) return;
+  var vals = {};
+  tr.querySelectorAll('.qty-input').forEach(function (i) { vals[i.dataset.size] = Math.max(0, Math.floor(Number(i.value) || 0)); });
+  inp.style.background = '#fff6cc';
+  fetch(API_BASE + '/api/state/' + key).then(function (r) { return r.json(); }).then(function (res) {
+    var st = (res && res.value) || {};
+    st[prod.name] = vals;
+    return fetch(API_BASE + '/api/state/' + key, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+      body: JSON.stringify(st)
+    });
+  }).then(function (r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    inp.style.background = '#d8f5d8';
+    return loadStockTables();
+  }).catch(function (e) {
+    inp.style.background = '#ffd6d6';
+    alert('Не удалось сохранить количество: ' + e.message);
+  });
+});
 
 function loadStockTables() {
   return Promise.all([
