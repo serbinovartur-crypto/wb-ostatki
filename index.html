@@ -584,7 +584,7 @@ loadCosts();
 var OUR_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 // Перчатки в карточках WB идут числовыми размерами (11, 11,5, 12, 12,5, 13) — для них
 // во вкладке "Остатки на ВБ" под заголовком категории показываем свою шапку размеров.
-var GLOVE_SIZES = ['11', '11.5', '12', '12.5', '13'];
+var GLOVE_SIZES = ['9', '9.5', '10', '10.5', '11', '11.5', '12', '12.5', '13'];
 function normalizeGloveSize(raw) {
   if (raw == null) return null;
   var v = String(raw).trim().replace(',', '.');
@@ -612,14 +612,23 @@ var PRODUCT_CATALOG = [
   { name: "Свитшот белый", photo: null, skus: null },
   { name: "Свитшот чёрный", photo: null, skus: null },
   { name: "Свитшот белый (без размера)", photo: null, skus: null },
-  { name: "Свитшот чёрный (без размера)", photo: null, skus: null }
+  { name: "Свитшот чёрный (без размера)", photo: null, skus: null },
+  { name: "Кардиган чёрный", photo: null, skus: "2124334190", cardigan: true, avail: ['S','M','L'] },
+  { name: "Перчатки_тяк_01", photo: null, skus: "1852030916", glove: true, avail: ['11','11.5','12','12.5','13'] },
+  { name: "Перчатки_тяк_02", photo: null, skus: "1852087714", glove: true, avail: ['11','11.5','12','12.5','13'] },
+  { name: "Перчатки_тяк_03", photo: null, skus: "1870044934", glove: true, avail: ['11','11.5','12','12.5','13'] },
+  { name: "Перчатки_тяк_04", photo: null, skus: "1998109943", glove: true, avail: ['10','10.5','11','11.5','12'] },
+  { name: "Перчатки_тяк_05", photo: null, skus: "1998339648", glove: true, avail: ['9','9.5','10','10.5','11'] },
+  { name: "Перч_Кит_полоска_06", photo: null, skus: "2034052748", glove: true, avail: ['9','9.5','10','10.5','11'] },
+  { name: "Перч_Кит_Б/Рисунка_07", photo: null, skus: "2033859624", glove: true, avail: ['9','9.5','10','10.5','11'] },
+  { name: "Перчатки_кит_без/рисунка_08", photo: null, skus: "2207531756", glove: true, avail: ['9','9.5','10','10.5','11'] }
 ];
 
 function emptySizes() { return { S: 0, M: 0, L: 0, XL: 0, XXL: 0 }; }
 
-function sumSizes(a, b) {
+function sumSizes(a, b, keys) {
   var out = {};
-  OUR_SIZES.forEach(function (k) { out[k] = (Number(a[k]) || 0) + (Number(b[k]) || 0); });
+  (keys || OUR_SIZES).forEach(function (k) { out[k] = (Number(a[k]) || 0) + (Number(b[k]) || 0); });
   return out;
 }
 
@@ -642,26 +651,31 @@ function applyCustomOrderFlat(items, slug) {
 function renderSizeTable(slug, sizesMap, catalog) {
   var tbody = document.getElementById('tbody-' + slug);
   if (!tbody) return;
+  var showAll = slug === 'obshee'; // в "Общее" перчатки и кардиган показываем всегда, даже с нулями
 
   var items = (catalog || PRODUCT_CATALOG).map(function (p, idx) {
-    var sizes = sizesMap[p.name] || emptySizes();
-    var total = OUR_SIZES.reduce(function (s, k) { return s + (Number(sizes[k]) || 0); }, 0);
-    return { idx: idx, name: p.name, photo: p.photo, skus: p.skus, sizes: sizes, total: total };
-  }).filter(function (it) { return it.total > 0; });
+    var keys = p.glove ? GLOVE_SIZES : OUR_SIZES;
+    var sizes = sizesMap[p.name] || {};
+    var total = keys.reduce(function (s, k) { return s + (Number(sizes[k]) || 0); }, 0);
+    return { idx: idx, name: p.name, photo: p.photo, skus: p.skus, sizes: sizes, total: total, glove: !!p.glove, cardigan: !!p.cardigan, avail: p.avail || null };
+  }).filter(function (it) { return it.total > 0 || (showAll && (it.glove || it.cardigan)); });
 
-  items.sort(function (a, b) { return b.total - a.total; });
-  items = applyCustomOrderFlat(items, slug);
+  var plain = items.filter(function (it) { return !it.glove && !it.cardigan; });
+  var cardigans = items.filter(function (it) { return it.cardigan; });
+  var gloves = items.filter(function (it) { return it.glove; });
+  plain.sort(function (a, b) { return b.total - a.total; });
+  plain = applyCustomOrderFlat(plain, slug);
 
   tbody.innerHTML = '';
-  items.forEach(function (item) {
+  function addRow(item) {
     var tr = document.createElement('tr');
     tr.dataset.id = slug + '-' + item.idx;
     var photoHtml = item.photo
       ? '<img src="' + item.photo + '" alt="' + escapeAttr(item.name) + '" loading="lazy">'
       : '<div class="noimg">нет фото</div>';
-    var hasSizeInfo = item.availableSizes && Object.keys(item.availableSizes).length > 0;
-    var sizeCells = OUR_SIZES.map(function (k) {
-      if (hasSizeInfo && !item.availableSizes[k]) return '<td></td>';
+    var keys = item.glove ? GLOVE_SIZES : OUR_SIZES;
+    var sizeCells = keys.map(function (k) {
+      if (item.avail && item.avail.indexOf(k) === -1) return '<td></td>';
       return '<td>' + (Number(item.sizes[k]) || 0) + '</td>';
     }).join('');
     tr.innerHTML =
@@ -674,7 +688,24 @@ function renderSizeTable(slug, sizesMap, catalog) {
       '<td class="cell-cost"><input type="number" class="cost-input" data-name="' + escapeAttr(item.name) + '" placeholder="0" min="0" step="0.01" inputmode="decimal"></td>' +
       '<td class="cell-sum">—</td>';
     tbody.appendChild(tr);
-  });
+  }
+  function addCategory(title, withGloveHead) {
+    var hr = document.createElement('tr');
+    hr.className = 'wb-category-row';
+    hr.innerHTML = '<td colspan="16">' + title + '</td>';
+    tbody.appendChild(hr);
+    if (withGloveHead) {
+      var sh = document.createElement('tr');
+      sh.className = 'wb-glove-sizes-row';
+      sh.innerHTML = '<td colspan="4" style="text-align:right;color:#777;font-size:12px;">Размеры перчаток →</td>' +
+        GLOVE_SIZES.map(function (k) { return '<td style="font-weight:600;color:#555;">' + k.replace('.', ',') + '</td>'; }).join('') +
+        '<td style="font-weight:600;color:#555;">Итого</td><td style="font-weight:600;color:#555;">Себест.</td><td style="font-weight:600;color:#555;">Сумма</td>';
+      tbody.appendChild(sh);
+    }
+  }
+  plain.forEach(addRow);
+  if (cardigans.length) { addCategory('Кардиган', false); cardigans.forEach(addRow); }
+  if (gloves.length) { addCategory('Перчатки', true); gloves.forEach(addRow); }
 
   var totalUnits = items.reduce(function (s, it) { return s + it.total; }, 0);
   var totalEl = document.querySelector('#tab-' + slug + ' .section-total');
@@ -690,7 +721,7 @@ function loadStockTables() {
     var unpacked = (results[1] && results[1].value) || {};
     var obshee = {};
     PRODUCT_CATALOG.forEach(function (p) {
-      obshee[p.name] = sumSizes(packed[p.name] || emptySizes(), unpacked[p.name] || emptySizes());
+      obshee[p.name] = sumSizes(packed[p.name] || {}, unpacked[p.name] || {}, p.glove ? GLOVE_SIZES : OUR_SIZES);
     });
     renderSizeTable('upakovannye', packed);
     renderSizeTable('neupakovannye', unpacked);
@@ -791,6 +822,7 @@ var WB_CATEGORIES = [
   { key: 'hoodies', title: 'Худи и зип-худи', test: function(n) { return n.indexOf('худи') !== -1; } },
   { key: 'suits', title: 'Костюмы', test: function(n) { return n.indexOf('костюм') !== -1; } },
   { key: 'gloves', title: 'Перчатки', test: function(n) { return n.indexOf('перчатк') !== -1; } },
+  { key: 'cardigans', title: 'Кардиган', test: function(n) { return n.indexOf('кардиган') !== -1; } },
   { key: 'other', title: 'Другое', test: function() { return true; } }
 ];
 
@@ -798,6 +830,7 @@ function categorizeWbItem(item) {
   var n = (item.name || '').toLowerCase();
   if (n.indexOf('костюм') !== -1) return 'suits';
   if (n.indexOf('перчатк') !== -1) return 'gloves';
+  if (n.indexOf('кардиган') !== -1) return 'cardigans';
   if (n.indexOf('худи') !== -1) return 'hoodies';
   if (n.indexOf('рубашк') !== -1) return 'shirts';
   // Наши собственные товары на сайте называются по цвету/узору, без слова
@@ -1022,7 +1055,7 @@ function renderWbStock(stockData, cardsData) {
       sizeHead.className = 'wb-glove-sizes-row';
       sizeHead.innerHTML = '<td colspan="5" style="text-align:right;color:#777;font-size:12px;">Размеры перчаток →</td>' +
         GLOVE_SIZES.map(function (k) { return '<td style="font-weight:600;color:#555;">' + k.replace('.', ',') + '</td>'; }).join('') +
-        '<td colspan="6"></td>';
+        '<td style="font-weight:600;color:#555;">На складе</td><td style="font-weight:600;color:#555;">К клиенту</td><td style="font-weight:600;color:#555;">Возврат</td><td style="font-weight:600;color:#555;">Итого</td><td style="font-weight:600;color:#555;">Себест.</td><td style="font-weight:600;color:#555;">Сумма</td>';
       tbody.appendChild(sizeHead);
     }
     items.forEach(renderRow);
