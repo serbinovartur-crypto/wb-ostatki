@@ -40,7 +40,8 @@
   table.stock-table thead th.cell-total.sortable-col { cursor:pointer; user-select:none; }
   table.stock-table thead th.cell-total.sortable-col:hover { background:#333; }
   #tab-upakovannye thead, #tab-neupakovannye thead, #tab-obshee thead, #tab-wb-stock thead { display:none; }
-  table.stock-table tr.cat-head-row td { background:#1b1b1b; color:#fff; font-weight:600; font-size:12px; }
+  table.stock-table td.cell-sku, table.stock-table td.cell-name { white-space:normal; word-break:break-word; }
+  table.stock-table tr.cat-head-row td { white-space:normal; background:#1b1b1b; color:#fff; font-weight:600; font-size:12px; }
   table.stock-table tbody tr.cat-head-row:hover { background:#1b1b1b; }
   .sort-arrow { display:inline-block; margin-left:4px; font-size:10px; opacity:0.85; }
   .cell-cost { width:110px; }
@@ -605,7 +606,7 @@ function sortSizeKeys(keys, glove) {
 function applyGrid(table, lead, slots, tail) {
   var old = table.querySelector('colgroup'); if (old) old.remove();
   var cg = document.createElement('colgroup');
-  var ws = lead.concat(new Array(slots).fill(56), tail);
+  var ws = lead.concat(new Array(slots).fill(52), tail);
   ws.forEach(function (w) { var c = document.createElement('col'); c.style.width = w + 'px'; cg.appendChild(c); });
   table.insertBefore(cg, table.firstChild);
   table.style.tableLayout = 'fixed';
@@ -704,7 +705,7 @@ function renderSizeTable(slug, sizesMap, catalog) {
   if (cg.length) cats.push({ title: 'Кардиган', items: cg, cols: unionCols(cg, false, OUR_SIZES), glove: false });
   if (plain.length) cats.push({ title: 'Рубашки и худи', items: plain, cols: OUR_SIZES.slice(), glove: false });
   var slots = Math.max(5, cats.reduce(function (m, c) { return Math.max(m, c.cols.length); }, 0));
-  var lead = [34, 72, 250, 130], tail = [70, 130, 110];
+  var lead = [34, 72, 240, 190], tail = [80, 130, 110];
   var totalCols = applyGrid(table, lead, slots, tail);
 
   tbody.innerHTML = '';
@@ -1113,7 +1114,7 @@ function renderWbStock(stockData, cardsData) {
     activeCats.push({ cat: cat, items: items, cols: cols });
   });
   var wbSlots = Math.max(5, activeCats.reduce(function (m, c) { return Math.max(m, c.cols.length); }, 0));
-  var wbTotalCols = applyGrid(tbody.closest('table'), [34, 72, 110, 150, 230], wbSlots, [84, 96, 84, 70, 120, 110]);
+  var wbTotalCols = applyGrid(tbody.closest('table'), [34, 72, 110, 200, 260], wbSlots, [100, 120, 100, 90, 120, 110]);
   activeCats.forEach(function (ac) {
     appendCategoryHead(tbody, wbTotalCols, ac.cat.title, ['', 'Фото', 'Артикул', 'Артикул продавца', 'Название'], ac.cols, wbSlots, ['На складах ВБ', 'В пути к покупателю', 'Возврат в пути', 'Итого', 'Себестоимость', 'Сумма']);
     ac.items.forEach(function (it) { renderRow(it, ac.cols, wbSlots); });
