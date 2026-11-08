@@ -1113,6 +1113,9 @@ function renderWbStock(stockData, cardsData) {
     if (!cols.length) cols = isG ? GLOVE_SIZES.slice() : OUR_SIZES.slice();
     activeCats.push({ cat: cat, items: items, cols: cols });
   });
+  // Сейчас сезон перчаток и кардигана — показываем их выше остальных категорий.
+  var catPriority = { gloves: 0, cardigans: 1 };
+  activeCats.sort(function (a, b) { return (catPriority[a.cat.key] !== undefined ? catPriority[a.cat.key] : 5) - (catPriority[b.cat.key] !== undefined ? catPriority[b.cat.key] : 5); });
   var wbSlots = Math.max(5, activeCats.reduce(function (m, c) { return Math.max(m, c.cols.length); }, 0));
   var wbTotalCols = applyGrid(tbody.closest('table'), [34, 72, 110, 200, 260], wbSlots, [100, 120, 100, 90, 120, 110]);
   activeCats.forEach(function (ac) {
