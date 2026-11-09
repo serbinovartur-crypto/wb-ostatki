@@ -901,7 +901,7 @@ var WB_CATEGORIES = [
   { key: 'shirts', title: 'Рубашки', test: function(n) { return n.indexOf('рубашк') !== -1; } },
   { key: 'hoodies', title: 'Худи и зип-худи', test: function(n) { return n.indexOf('худи') !== -1; } },
   { key: 'suits', title: 'Костюмы', test: function(n) { return n.indexOf('костюм') !== -1; } },
-  { key: 'gloves', title: 'Перчатки', test: function(n) { return n.indexOf('перчатк') !== -1; } },
+  { key: 'gloves', title: 'Перчатки', test: function(n) { return n.indexOf('перч') !== -1; } },
   { key: 'cardigans', title: 'Кардиган', test: function(n) { return n.indexOf('кардиган') !== -1; } },
   { key: 'other', title: 'Другое', test: function() { return true; } }
 ];
@@ -909,7 +909,7 @@ var WB_CATEGORIES = [
 function categorizeWbItem(item) {
   var n = (item.name || '').toLowerCase();
   if (n.indexOf('костюм') !== -1) return 'suits';
-  if (n.indexOf('перчатк') !== -1) return 'gloves';
+  if (n.indexOf('перч') !== -1) return 'gloves'; // ловит и "Перч_Кит_..."
   if (n.indexOf('кардиган') !== -1) return 'cardigans';
   if (n.indexOf('худи') !== -1) return 'hoodies';
   if (n.indexOf('рубашк') !== -1) return 'shirts';
