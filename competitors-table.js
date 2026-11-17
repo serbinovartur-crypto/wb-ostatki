@@ -37,11 +37,11 @@
       '.ct-refresh:hover{background:#eceae3;}.ct-refresh[disabled]{opacity:.6;cursor:default;}' +
       '.ct-status{font-size:12px;color:#777;}' +
       '.ct-cat{font-weight:700;font-size:14px;margin:18px 0 8px;color:#333;}' +
-      '.ct-wrap{overflow:auto;max-width:100%;max-height:calc(100vh - 90px);border:1px solid #e2e0da;border-radius:10px;background:#fff;}' +
-      'table.ct-table{border-collapse:collapse;font-size:13px;min-width:100%;}' +
-      'table.ct-table th,table.ct-table td{border:1px solid #eceae5;padding:6px 8px;text-align:center;vertical-align:middle;}' +
-      'table.ct-table thead th{background:#faf9f7;position:sticky;top:0;z-index:2;font-weight:600;}' +
-      'table.ct-table .ct-name{position:sticky;left:0;background:#fff;z-index:1;text-align:left;min-width:230px;box-shadow:1px 0 0 #e2e0da;}' +
+      '.ct-wrap{overflow-x:clip;max-width:100%;border:1px solid #e2e0da;border-radius:10px;background:#fff;}' +
+      'table.ct-table{border-collapse:separate;border-spacing:0;font-size:13px;width:100%;table-layout:auto;}' +
+      'table.ct-table th,table.ct-table td{border:0;border-right:1px solid #eceae5;border-bottom:1px solid #eceae5;padding:6px 8px;text-align:center;vertical-align:middle;}' +
+      'table.ct-table thead th{background:#faf9f7;position:sticky;top:var(--ct-top,56px);z-index:5;font-weight:600;box-shadow:0 1px 0 #d8d5cd;}' +
+      'table.ct-table .ct-name{background:#fff;text-align:left;min-width:200px;}' +
       'table.ct-table thead th.ct-name{background:#faf9f7;z-index:3;}' +
       '.ct-ph{width:46px;height:46px;object-fit:cover;border-radius:6px;background:#eee;display:block;margin:0 auto 3px;}' +
       '.ct-comp{display:flex;gap:9px;align-items:center;}' +
@@ -59,6 +59,14 @@
     var st = document.createElement('style');
     st.textContent = css;
     document.head.appendChild(st);
+    // шапка таблицы прилипает прямо под закреплённой полосой вкладок сайта
+    function setTop() {
+      var tabs = document.querySelector('.tabs');
+      var h = tabs ? Math.round(tabs.getBoundingClientRect().height) : 0;
+      document.documentElement.style.setProperty('--ct-top', h + 'px');
+    }
+    setTop();
+    window.addEventListener('resize', setTop);
   }
 
   function copyText(text, btn) {
