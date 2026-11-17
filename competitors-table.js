@@ -69,6 +69,19 @@
     }
     setTop();
     window.addEventListener('resize', setTop);
+
+    // В окне истории позиций у карточек конкурента убираем «поиск»: нужны только полки (CPM/CPC + ставка).
+    function trimSearch(root) {
+      var cells = (root.querySelectorAll ? root.querySelectorAll('.cell-ad:not([data-ct])') : []);
+      [].forEach.call(cells, function (el) {
+        el.setAttribute('data-ct', '1');
+        var lines = el.innerHTML.split(/<br\s*\/?>/i).map(function (l) {
+          return l.replace(/\s*\/\s*поиск\s*[\d.,]+/i, '');
+        }).filter(function (l) { return /рек\s*[\d.,]+/i.test(l); });
+        el.innerHTML = lines.length ? lines.join('<br>') : 'без рекламы на полках';
+      });
+    }
+    new MutationObserver(function () { trimSearch(document); }).observe(document.body, { childList: true, subtree: true });
   }
 
   function copyText(text, btn) {
