@@ -37,7 +37,7 @@
       '.ct-refresh:hover{background:#eceae3;}.ct-refresh[disabled]{opacity:.6;cursor:default;}' +
       '.ct-status{font-size:12px;color:#777;}' +
       '.ct-cat{font-weight:700;font-size:14px;margin:18px 0 8px;color:#333;}' +
-      '.ct-wrap{overflow:auto;max-width:100%;border:1px solid #e2e0da;border-radius:10px;background:#fff;}' +
+      '.ct-wrap{overflow:auto;max-width:100%;max-height:calc(100vh - 90px);border:1px solid #e2e0da;border-radius:10px;background:#fff;}' +
       'table.ct-table{border-collapse:collapse;font-size:13px;min-width:100%;}' +
       'table.ct-table th,table.ct-table td{border:1px solid #eceae5;padding:6px 8px;text-align:center;vertical-align:middle;}' +
       'table.ct-table thead th{background:#faf9f7;position:sticky;top:0;z-index:2;font-weight:600;}' +
