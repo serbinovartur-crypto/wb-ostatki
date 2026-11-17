@@ -55,6 +55,8 @@
       '.ct-n{color:#bbb;}' +
       '.ct-d{display:block;font-size:10px;font-weight:700;}.ct-d.up{color:#2e7d32;}.ct-d.down{color:#c0392b;}' +
       '.ct-time{font-size:10px;color:#999;}' +
+      '.ct-ad{display:inline-block;margin-top:3px;font-size:10px;font-weight:700;border-radius:8px;padding:1px 6px;white-space:nowrap;}' +
+      '.ct-ad.on{background:#e3ecff;color:#1d4ed8;}.ct-ad.off{background:#f0efec;color:#999;font-weight:600;}' +
       '.ct-inactive{opacity:.45;}';
     var st = document.createElement('style');
     st.textContent = css;
@@ -95,6 +97,16 @@
     return '<td class="' + cls + '">' + pos + d + '</td>';
   }
 
+  // реклама на полках (рекомендации) в момент замера: CPM/CPC + ставка; поиск не показываем
+  function adChip(ad, nm) {
+    if (!ad || !ad.byNm) return '';
+    var list = ad.byNm[String(nm)];
+    if (!list || !list.length) return '<div class="ct-ad off">реклама выкл</div>';
+    return list.map(function (a) {
+      return '<div class="ct-ad on">' + esc(a.t) + ' ' + String(a.bid).replace('.', ',') + '</div>';
+    }).join('');
+  }
+
   function renderCategory(cat) {
     if (!cat.cards.length) {
       return '<div class="ct-cat">' + esc(cat.label) + '</div><div class="ct-status">Для этой категории пока нет данных о своих карточках в сканах.</div>';
@@ -102,7 +114,7 @@
     var h = '<div class="ct-cat">' + esc(cat.label) + '</div><div class="ct-wrap"><table class="ct-table"><thead><tr><th class="ct-name">Конкурент</th>';
     cat.cards.forEach(function (c) {
       var ph = c.photo ? '<img class="ct-ph" src="' + esc(c.photo) + '" alt="">' : '<div class="ct-ph"></div>';
-      h += '<th>' + ph + '<div class="ct-lbl">' + esc(c.label) + '</div><div class="ct-art">' + c.nmID + cp(c.nmID) + '</div></th>';
+      h += '<th>' + ph + '<div class="ct-lbl">' + esc(c.label) + '</div><div class="ct-art">' + c.nmID + cp(c.nmID) + '</div>' + adChip(cat.ad, c.nmID) + '</th>';
     });
     h += '</tr></thead><tbody>';
     cat.rows.forEach(function (r) {
