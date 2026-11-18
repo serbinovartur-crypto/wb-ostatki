@@ -180,9 +180,9 @@
     var ids = [];
     lastData.categories.forEach(function (c) { c.rows.forEach(function (r) { if (r.active) ids.push(r.id); }); });
     btn.disabled = true;
-    Promise.all(ids.map(function (id) {
-      return fetch(api() + '/api/competitors/' + id + '/request-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Api-Key': key() } });
-    })).then(function () {
+    fetch(api() + '/api/competitors-table/request-refresh', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Api-Key': key() }, body: JSON.stringify({ ids: ids })
+    }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); }).then(function () {
       st.textContent = 'Запрос на обновление отправлен. Позиции обновятся автоматически, когда придёт новый замер…';
       var tries = 0;
       if (pollTimer) clearInterval(pollTimer);
