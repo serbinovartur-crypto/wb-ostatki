@@ -319,7 +319,7 @@
       <form class="add-competitor-form" onsubmit="return addCompetitor(event)">
         <input type="text" name="url" placeholder="Ссылка на карточку конкурента (wildberries.ru/catalog/.../detail.aspx)" required>
         <input type="text" name="name" placeholder="Название (необязательно)">
-        <select name="category"><option value="shirts">Рубашки</option><option value="hoodies">Худи</option><option value="gloves">Перчатки</option><option value="other">Прочее</option></select>
+        <select name="category"><option value="shirts">Рубашки</option><option value="hoodies">Худи</option><option value="gloves">Перчатки</option><option value="gloves_women">Женские перчатки</option><option value="other">Прочее</option></select>
         <button type="submit" class="wh-global-btn">+ Добавить конкурента</button>
       </form>
       <button type="button" id="competitors-refresh-all-btn" class="wh-global-btn" onclick="requestAllCompetitorsRefresh()">&#8635; Запросить обновление всех активных</button>
@@ -1260,7 +1260,7 @@ var competitorsOrder = [];
   var COMPETITOR_CATEGORIES = [
     { value: 'shirts', label: 'Рубашки' },
     { value: 'hoodies', label: 'Худи' },
-    { value: 'gloves', label: 'Перчатки' },
+    { value: 'gloves', label: 'Перчатки' }, { value: 'gloves_women', label: 'Женские перчатки' },
     { value: 'other', label: 'Прочее' }
     ];
 
