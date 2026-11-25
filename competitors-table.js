@@ -4,6 +4,24 @@
 // зелёным близкие (до 10), жёлтым средние (11–35), красным далёкие (36+).
 // Данные берутся из GET /api/competitors/table (уже сохранённые сканы).
 // Кнопка «Обновить» ставит запрос на обновление и ждёт новый замер.
+// Запоминаем открытую вкладку сайта: после обновления страницы (F5) остаёмся на ней же.
+(function () {
+  var KEY = 'wbActiveTab';
+  try {
+    var orig = window.showTab;
+    if (typeof orig !== 'function' || orig.__remembers) return;
+    var wrapped = function (slug) {
+      var r = orig.apply(this, arguments);
+      try { localStorage.setItem(KEY, slug); } catch (e) {}
+      return r;
+    };
+    wrapped.__remembers = true;
+    window.showTab = wrapped;
+    var saved = localStorage.getItem(KEY);
+    if (saved && document.getElementById('tab-' + saved)) orig(saved);
+  } catch (e) {}
+})();
+
 (function () {
   'use strict';
 
