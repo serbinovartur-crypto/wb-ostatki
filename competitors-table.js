@@ -152,7 +152,7 @@
       var ph = r.photo ? '<img class="ct-ph" src="' + esc(r.photo) + '" alt="">' : '<div class="ct-ph"></div>';
       h += '<tr class="' + (r.active ? '' : 'ct-inactive') + '"><td class="ct-name"><div class="ct-comp">' + ph + '<div>' +
         '<div class="ct-cname">' + esc(r.name) + '</div><div class="ct-art">' + r.nmID + cp(r.nmID) + '</div>' +
-        '<div class="ct-time">' + esc(fmtTime(r.scannedAt)) + (r.refreshRequestedAt ? ' · ждёт обновления' : '') + '</div></div></div></td>';
+        '<div class="ct-time">' + esc(fmtTime(r.scannedAt)) + (r.refreshRequestedAt && AUTO[cat.value] ? ' · ждёт обновления' : '') + '</div></div></div></td>';
       cat.cards.forEach(function (c) {
         h += cellHtml(r.pos[String(c.nmID)], r.prev[String(c.nmID)]);
       });
