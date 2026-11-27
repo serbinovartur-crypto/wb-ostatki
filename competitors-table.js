@@ -168,16 +168,52 @@
     return m;
   }
 
+  // Расширение замеряет только эти категории; остальные в «Обновить» и в ожидание не входят.
+  var AUTO = { gloves: 1, cardigans: 1 };
+
+  function pendingCount(data) {
+    var n = 0, total = 0;
+    (data.categories || []).forEach(function (c) { if (!AUTO[c.value]) return; c.rows.forEach(function (r) { if (r.active) { total++; if (r.refreshRequestedAt) n++; } }); });
+    return { n: n, total: total };
+  }
+
+  var pollStarted = 0;
+  function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } var b = document.getElementById('ct-refresh'); if (b) b.disabled = false; }
+  // Пока есть конкуренты «ждёт обновления» — сама подгружает таблицу каждые 5 секунд (до 15 минут).
+  function startPoll() {
+    if (pollTimer) return;
+    pollStarted = Date.now();
+    pollTimer = setInterval(function () {
+      if (Date.now() - pollStarted > 15 * 60 * 1000) {
+        stopPoll();
+        var st0 = document.getElementById('ct-status');
+        if (st0) st0.textContent = 'Часть замеров не пришла. Запрос сохранён: он выполнится, когда расширение будет работать на открытой странице WB.';
+        return;
+      }
+      load();
+    }, 5000);
+  }
+
   function render(data) {
     lastData = data;
     var box = document.getElementById('ct-table-view');
     if (!box) return;
+    var y = window.pageYOffset;
     var html = '';
     (data.categories || []).forEach(function (cat) { html += renderCategory(cat); });
     if (!html) html = '<div class="ct-status">Пока нет конкурентов.</div>';
     box.innerHTML = html;
+    window.scrollTo(0, y);
     var st = document.getElementById('ct-status');
-    if (st && !pollTimer) st.textContent = 'Последний замер: ' + fmtTime(maxScan(data)) + '. ▲/▼ — изменение к предыдущему замеру.';
+    var p = pendingCount(data);
+    if (p.n > 0) {
+      if (st) st.textContent = 'Ждут обновления: ' + p.n + ' из ' + p.total + '. Позиции появятся здесь сами, страницу обновлять не нужно.';
+      var b = document.getElementById('ct-refresh'); if (b) b.disabled = true;
+      startPoll();
+    } else {
+      if (pollTimer) { stopPoll(); if (st) st.textContent = 'Обновлено: ' + fmtTime(maxScan(data)) + '. ▲/▼ — изменение к предыдущему замеру.'; }
+      else if (st) st.textContent = 'Последний замер: ' + fmtTime(maxScan(data)) + '. ▲/▼ — изменение к предыдущему замеру.';
+    }
   }
 
   function load() {
@@ -186,7 +222,7 @@
       return d;
     }).catch(function () {
       var box = document.getElementById('ct-table-view');
-      if (box) box.innerHTML = '<div class="ct-status" style="color:#b00020;">Не удалось загрузить таблицу</div>';
+      if (box && !lastData) box.innerHTML = '<div class="ct-status" style="color:#b00020;">Не удалось загрузить таблицу</div>';
     });
   }
 
@@ -194,28 +230,14 @@
     var btn = document.getElementById('ct-refresh');
     var st = document.getElementById('ct-status');
     if (!lastData) return;
-    var before = maxScan(lastData);
     var ids = [];
-    lastData.categories.forEach(function (c) { c.rows.forEach(function (r) { if (r.active) ids.push(r.id); }); });
+    lastData.categories.forEach(function (c) { if (!AUTO[c.value]) return; c.rows.forEach(function (r) { if (r.active) ids.push(r.id); }); });
     btn.disabled = true;
     fetch(api() + '/api/competitors-table/request-refresh', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Api-Key': key() }, body: JSON.stringify({ ids: ids })
     }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); }).then(function () {
-      st.textContent = 'Запрос на обновление отправлен. Позиции обновятся автоматически, когда придёт новый замер…';
-      var tries = 0;
-      if (pollTimer) clearInterval(pollTimer);
-      pollTimer = setInterval(function () {
-        tries++;
-        load().then(function (d) {
-          if (d && maxScan(d) > before) {
-            clearInterval(pollTimer); pollTimer = null; btn.disabled = false;
-            st.textContent = 'Обновлено: ' + fmtTime(maxScan(d)) + '.';
-          } else if (tries > 60) { // ~10 минут
-            clearInterval(pollTimer); pollTimer = null; btn.disabled = false;
-            st.textContent = 'Новый замер пока не пришёл. Запрос сохранён, он выполнится при следующем замере.';
-          }
-        });
-      }, 10000);
+      st.textContent = 'Запрос на обновление отправлен. Позиции обновятся автоматически, страницу обновлять не нужно…';
+      load();
     }).catch(function () {
       btn.disabled = false; st.textContent = 'Не удалось отправить запрос.';
     });
