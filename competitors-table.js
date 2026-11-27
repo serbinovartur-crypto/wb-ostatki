@@ -172,7 +172,7 @@
   }
 
   // Расширение замеряет только эти категории; остальные в «Обновить» и в ожидание не входят.
-  var AUTO = { gloves: 1, cardigans: 1 };
+  var AUTO = { gloves: 1, gloves_women: 1, cardigans: 1 };
   var gaveUp = false; // прошло 15 минут, а часть замеров не пришла — показываем старые цифры
 
   function pendingCount(data) {
