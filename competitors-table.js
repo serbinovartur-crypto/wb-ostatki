@@ -54,7 +54,7 @@
       '.ct-refresh{border:1px solid #d8d5cd;background:#f6f5f3;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}' +
       '.ct-refresh:hover{background:#eceae3;}.ct-refresh[disabled]{opacity:.6;cursor:default;}' +
       '.ct-status{font-size:12px;color:#777;}' +
-      '.ct-cat{font-weight:700;font-size:14px;margin:18px 0 8px;color:#333;}' +
+      '.ct-cat{font-weight:700;font-size:14px;margin:18px 0 8px;color:#333;display:flex;align-items:center;gap:12px;}' +
       '.ct-wrap{overflow-x:clip;max-width:100%;border:1px solid #e2e0da;border-radius:10px;background:#fff;}' +
       'table.ct-table{border-collapse:separate;border-spacing:0;font-size:13px;width:100%;table-layout:auto;}' +
       'table.ct-table th,table.ct-table td{border:0;border-right:1px solid #eceae5;border-bottom:1px solid #eceae5;padding:6px 8px;text-align:center;vertical-align:middle;}' +
@@ -144,7 +144,8 @@
     if (!cat.cards.length) {
       return '<div class="ct-cat">' + esc(cat.label) + '</div><div class="ct-status">Для этой категории пока нет данных о своих карточках в сканах.</div>';
     }
-    var h = '<div class="ct-cat">' + esc(cat.label) + '</div><div class="ct-wrap"><table class="ct-table"><thead><tr><th class="ct-name">Конкурент</th>';
+    var btn = AUTO[cat.value] ? '<button type="button" class="ct-refresh ct-catbtn" data-cat="' + esc(cat.value) + '"' + (busyNow ? ' disabled' : '') + '>&#8635; Обновить</button>' : '';
+    var h = '<div class="ct-cat">' + esc(cat.label) + btn + '</div><div class="ct-wrap"><table class="ct-table"><thead><tr><th class="ct-name">Конкурент</th>';
     cat.cards.forEach(function (c) {
       var ph = c.photo ? '<img class="ct-ph" src="' + esc(c.photo) + '" alt="">' : '<div class="ct-ph"></div>';
       h += '<th>' + ph + '<div class="ct-lbl">' + esc(c.label) + '</div><div class="ct-art">' + c.nmID + cp(c.nmID) + '</div>' + adChip(cat.ad, c.nmID) + '</th>';
@@ -182,7 +183,9 @@
   }
 
   var pollStarted = 0;
-  function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } var b = document.getElementById('ct-refresh'); if (b) b.disabled = false; }
+  var busyNow = false;
+  function setBtns(dis) { busyNow = dis; document.querySelectorAll('.ct-catbtn').forEach(function (b) { b.disabled = dis; }); }
+  function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } setBtns(false); }
   // Пока есть конкуренты «ждёт обновления» — сама подгружает таблицу каждые 5 секунд (до 15 минут).
   function startPoll() {
     if (pollTimer) return;
@@ -206,6 +209,7 @@
     if (!box) return;
     var y = window.pageYOffset;
     var html = '';
+    busyNow = pendingCount(data).n > 0 && !gaveUp;
     (data.categories || []).forEach(function (cat) { html += renderCategory(cat); });
     if (!html) html = '<div class="ct-status">Пока нет конкурентов.</div>';
     box.innerHTML = html;
@@ -214,7 +218,7 @@
     var p = pendingCount(data);
     if (p.n > 0 && !gaveUp) {
       if (st) st.textContent = 'Ждут обновления: ' + p.n + ' из ' + p.total + '. Позиции появятся здесь сами, страницу обновлять не нужно.';
-      var b = document.getElementById('ct-refresh'); if (b) b.disabled = true;
+      setBtns(true);
       startPoll();
     } else {
       if (pollTimer) { stopPoll(); if (st) st.textContent = 'Обновлено: ' + fmtTime(maxScan(data)) + '. ▲/▼ — изменение к предыдущему замеру.'; }
@@ -232,21 +236,21 @@
     });
   }
 
-  function requestRefresh() {
-    var btn = document.getElementById('ct-refresh');
+  function requestRefresh(catValue) {
     var st = document.getElementById('ct-status');
     if (!lastData) return;
     gaveUp = false;
     var ids = [];
-    lastData.categories.forEach(function (c) { if (!AUTO[c.value]) return; c.rows.forEach(function (r) { if (r.active) ids.push(r.id); }); });
-    btn.disabled = true;
+    lastData.categories.forEach(function (c) { if (c.value !== catValue || !AUTO[c.value]) return; c.rows.forEach(function (r) { if (r.active) ids.push(r.id); }); });
+    if (!ids.length) return;
+    setBtns(true);
     fetch(api() + '/api/competitors-table/request-refresh', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Api-Key': key() }, body: JSON.stringify({ ids: ids })
     }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); }).then(function () {
       st.textContent = 'Запрос на обновление отправлен. Позиции обновятся автоматически, страницу обновлять не нужно…';
       load();
     }).catch(function () {
-      btn.disabled = false; st.textContent = 'Не удалось отправить запрос.';
+      setBtns(false); st.textContent = 'Не удалось отправить запрос.';
     });
   }
 
@@ -255,12 +259,10 @@
     var form = document.querySelector('#tab-competitors .add-competitor-form');
     if (form) tiles.push(form);
     var view = document.getElementById('ct-table-view');
-    var ref = document.getElementById('ct-refresh');
     var st = document.getElementById('ct-status');
     var tbl = mode === 'table';
     tiles.forEach(function (el) { if (el) el.style.display = tbl ? 'none' : ''; });
     view.style.display = tbl ? '' : 'none';
-    ref.style.display = tbl ? '' : 'none';
     st.style.display = tbl ? '' : 'none';
     document.querySelectorAll('#ct-seg button').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === mode); });
     try { localStorage.setItem(MODE_KEY, mode); } catch (e) {}
@@ -275,7 +277,6 @@
     bar.className = 'ct-toolbar';
     bar.innerHTML =
       '<span class="ct-seg" id="ct-seg"><button type="button" data-mode="tiles">Карточки</button><button type="button" data-mode="table">Таблица</button></span>' +
-      '<button type="button" class="ct-refresh" id="ct-refresh" style="display:none">&#8635; Обновить</button>' +
       '<span class="ct-status" id="ct-status" style="display:none"></span>';
     var view = document.createElement('div');
     view.id = 'ct-table-view';
@@ -286,8 +287,8 @@
     bar.querySelector('#ct-seg').addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (b) setMode(b.dataset.mode);
     });
-    document.getElementById('ct-refresh').addEventListener('click', requestRefresh);
     view.addEventListener('click', function (e) {
+      var rb = e.target.closest('.ct-catbtn'); if (rb) { requestRefresh(rb.dataset.cat); return; }
       var b = e.target.closest('.ct-cp'); if (b) copyText(b.dataset.cp, b);
     });
     var mode = 'tiles';
