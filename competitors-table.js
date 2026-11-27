@@ -75,7 +75,9 @@
       '.ct-time{font-size:10px;color:#999;}' +
       '.ct-ad{display:inline-block;margin-top:3px;font-size:10px;font-weight:700;border-radius:8px;padding:1px 6px;white-space:nowrap;}' +
       '.ct-ad.on{background:#e3ecff;color:#1d4ed8;}.ct-ad.off{background:#f0efec;color:#999;font-weight:600;}' +
-      '.ct-inactive{opacity:.45;}';
+      '.ct-inactive{opacity:.45;}' +
+      '.ct-spin{display:inline-block;width:18px;height:18px;border:3px solid #e1dfd8;border-top-color:#7a5af8;border-radius:50%;animation:ctspin .8s linear infinite;vertical-align:middle;}' +
+      '@keyframes ctspin{to{transform:rotate(360deg)}}';
     var st = document.createElement('style');
     st.textContent = css;
     document.head.appendChild(st);
@@ -152,9 +154,10 @@
       var ph = r.photo ? '<img class="ct-ph" src="' + esc(r.photo) + '" alt="">' : '<div class="ct-ph"></div>';
       h += '<tr class="' + (r.active ? '' : 'ct-inactive') + '"><td class="ct-name"><div class="ct-comp">' + ph + '<div>' +
         '<div class="ct-cname">' + esc(r.name) + '</div><div class="ct-art">' + r.nmID + cp(r.nmID) + '</div>' +
-        '<div class="ct-time">' + esc(fmtTime(r.scannedAt)) + (r.refreshRequestedAt && AUTO[cat.value] ? ' · ждёт обновления' : '') + '</div></div></div></td>';
+        '<div class="ct-time">' + esc(fmtTime(r.scannedAt)) + (r.refreshRequestedAt && AUTO[cat.value] && !gaveUp ? ' · обновляется…' : '') + '</div></div></div></td>';
+      var waiting = r.refreshRequestedAt && AUTO[cat.value] && !gaveUp;
       cat.cards.forEach(function (c) {
-        h += cellHtml(r.pos[String(c.nmID)], r.prev[String(c.nmID)]);
+        h += waiting ? '<td class="ct-n"><span class="ct-spin" title="Идёт обновление"></span></td>' : cellHtml(r.pos[String(c.nmID)], r.prev[String(c.nmID)]);
       });
       h += '</tr>';
     });
@@ -170,6 +173,7 @@
 
   // Расширение замеряет только эти категории; остальные в «Обновить» и в ожидание не входят.
   var AUTO = { gloves: 1, cardigans: 1 };
+  var gaveUp = false; // прошло 15 минут, а часть замеров не пришла — показываем старые цифры
 
   function pendingCount(data) {
     var n = 0, total = 0;
@@ -185,7 +189,9 @@
     pollStarted = Date.now();
     pollTimer = setInterval(function () {
       if (Date.now() - pollStarted > 15 * 60 * 1000) {
+        gaveUp = true;
         stopPoll();
+        if (lastData) render(lastData);
         var st0 = document.getElementById('ct-status');
         if (st0) st0.textContent = 'Часть замеров не пришла. Запрос сохранён: он выполнится, когда расширение будет работать на открытой странице WB.';
         return;
@@ -206,7 +212,7 @@
     window.scrollTo(0, y);
     var st = document.getElementById('ct-status');
     var p = pendingCount(data);
-    if (p.n > 0) {
+    if (p.n > 0 && !gaveUp) {
       if (st) st.textContent = 'Ждут обновления: ' + p.n + ' из ' + p.total + '. Позиции появятся здесь сами, страницу обновлять не нужно.';
       var b = document.getElementById('ct-refresh'); if (b) b.disabled = true;
       startPoll();
@@ -230,6 +236,7 @@
     var btn = document.getElementById('ct-refresh');
     var st = document.getElementById('ct-status');
     if (!lastData) return;
+    gaveUp = false;
     var ids = [];
     lastData.categories.forEach(function (c) { if (!AUTO[c.value]) return; c.rows.forEach(function (r) { if (r.active) ids.push(r.id); }); });
     btn.disabled = true;
